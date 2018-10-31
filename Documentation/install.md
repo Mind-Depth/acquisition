@@ -3,7 +3,8 @@ How to create your acquisition working repository
 
 ### System Dependencies
 
-virtualenv or python-virtualenv depending of your system's packet manager.
+..****python 3.6
+..*virtualenv or python-virtualenv depending of your system's packet manager
 
 ### Commands
 
