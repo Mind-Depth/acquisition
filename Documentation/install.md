@@ -15,13 +15,13 @@ To create the mind-depth virtualenv (Create it at the root of your repository):
   virtualenv mind-depth
 ```
 
-To active and go in your virtualenv:
+To activate your virtualenv:
 
 ``` bash
 source mind-depth/bin/activate
 ```
 
-To install all the dependencies in the virtualenv:
+To install all the dependencies within your virtualenv:
 
 ``` bash
 pip install -r requirement.txt
