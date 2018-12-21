@@ -32,3 +32,8 @@ class fear_classifier():
         
         print("res :")
         print(predictions)
+
+        if (predictions[0] == 0):
+            return False
+        else:
+            return True

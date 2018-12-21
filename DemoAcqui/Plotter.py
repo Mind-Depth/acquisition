@@ -11,6 +11,7 @@ class Plotter:
     def __init__(self):
         plt.xlabel('Time')
         plt.ylabel('Beats per minute')
+        #plt.axis([0, 20, 50, 150])
 
     def startPrint(self):
         #count = 0
@@ -31,7 +32,7 @@ class Plotter:
 
     def printBuff(self, buffer, isFear):
         if (not isFear):
-            Plotter.fearSpan.extend([np.nan for i in range(5)])
+            Plotter.fearSpan.extend([np.nan for i in range(10)])
         else:
             Plotter.fearSpan.extend(buffer)
 
