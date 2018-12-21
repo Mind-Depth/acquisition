@@ -6,7 +6,7 @@ from numpy import matrix
 from FearClassifier import fear_classifier
 
 def load_csv():
-    dataset = loadtxt('fakeDS.csv', delimiter=",")
+    dataset = loadtxt('dataset.csv', delimiter=",")
     return dataset
 
 def main():
