@@ -3,5 +3,6 @@
     - "3.6"
   script:
     - pip install -r requirement.txt
-    - python ./DemoAcqui/Tests/TrainingDataConsistencyTest.py
+    - cd ./DemoAcqui/Tests/
+    - python TrainingDataConsistencyTest.py
     - python test.py
