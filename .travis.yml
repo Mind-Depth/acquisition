@@ -5,4 +5,3 @@
     - pip install -r requirement.txt
     - cd ./DemoAcqui/Tests/
     - python -m unittest -v TrainingDataConsistencyTest
-    - python test.py
