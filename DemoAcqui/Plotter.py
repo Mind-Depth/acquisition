@@ -16,7 +16,11 @@ class Plotter:
     def startPrint(self):
         #count = 0
         while(Plotter.keep):
-            #self.printPlot(np.random.random())
+            self.printPlot(np.random.random())
+            limits = plt.xlim()
+            if (limits[1] - limits[0] > 19):
+                plt.xlim(limits[0] + 1, limits[1] + 1)
+            plt.xlim()
             plt.plot(Plotter.regSpan, 'b')
             plt.plot(Plotter.fearSpan, 'r')
             plt.pause(0.05)
