@@ -19,11 +19,9 @@ class Plotter:
         #count = 0
         while(Plotter.keep):
             #self.printPlot(np.random.random())
-            limits = plt.xlim()
-            if (limits[1] - limits[0] > 19):
-                plt.xlim(limits[0] + 1, limits[1] + 1)
             plt.plot(Plotter.regSpan, 'b')
             plt.plot(Plotter.fearSpan, 'r')
+            self.adaptRange()
             plt.pause(0.05)
             #count += 1
             #if (count % 5 == 0):
@@ -40,6 +38,11 @@ class Plotter:
             Plotter.fearSpan.extend([np.nan for i in range(10)])
         else:
             Plotter.fearSpan.extend(buffer)
+
+    def adaptRange():
+        limits = plt.xlim()
+        if (limits[1] - limits[0] > 19):
+            plt.xlim(limits[0] + 1, limits[1] + 1)
 
     def stopPrint(self):
         Plotter.keep = False
