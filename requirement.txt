@@ -3,3 +3,4 @@ xgboost
 datetime
 click
 matplotlib
+sklearn
