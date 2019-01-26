@@ -1,10 +1,8 @@
   language: python
   python:
     - "3.6"
-  git:
-    depth: false
   install:
-    - ls -l
+    - git clone git@github.com:Mind-Depth/acquisition.git
     - pip install -r requirements.txt
   script:
     - python test.py
