@@ -2,7 +2,7 @@
 import random
 
 def create_dataset():
-    file = open('testfile.csv','w')
+    file = open('./TrainingDataset/testfile.csv','w')
     for x in range(0, 1000):
         randTurn = random.randint(0, 1)
         if (randTurn):
