@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import numpy as np
 
 class Plotter:
@@ -9,6 +10,7 @@ class Plotter:
     keep = True
 
     def __init__(self):
+        mpl.style.use('dark_background')
         plt.xlabel('Time')
         plt.ylabel('Beats per minute')
         #plt.axis([0, 20, 50, 150])
@@ -25,7 +27,7 @@ class Plotter:
             plt.pause(0.05)
             #count += 1
             #if (count % 5 == 0):
-            #    self.printBuff([np.random.random() for i in range(5)], True if np.random.random() < 0.5 else False)
+            #    self.printBuff([np.random.random() for i in range(10)], True if np.random.random() < 0.5 else False)
             #if (count == 40):
             #    stopPrint()
         plt.show()
