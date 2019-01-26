@@ -11,7 +11,7 @@ class fear_classifier():
          
     def train_ia(self):
         print("...Training AI...")
-        training_dataset = loadtxt('testfile.csv', delimiter=",")
+        training_dataset = loadtxt('./TrainingDataset/testfile.csv', delimiter=",")
 
         # split data into X and y
         X = training_dataset[:,0:10]
