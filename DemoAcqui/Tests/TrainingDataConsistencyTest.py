@@ -4,7 +4,7 @@ import unittest
 import numpy
 from numpy import loadtxt
 
-class TestStringMethods(unittest.TestCase):
+class TestTrainingDataConsistency(unittest.TestCase):
 
     def load_csv(self):
         dataset = loadtxt('../TrainingDataset/testfile.csv', delimiter=",")
@@ -29,7 +29,3 @@ class TestStringMethods(unittest.TestCase):
                 else:
                     self.assertEqual(len(str(int(data))), 1)
                 i += 1
-            
-
-if __name__ == '__main__':
-    unittest.main()

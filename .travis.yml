@@ -4,5 +4,5 @@
   script:
     - pip install -r requirement.txt
     - cd ./DemoAcqui/Tests/
-    - python TrainingDataConsistencyTest.py
+    - python -m unittest -v TrainingDataConsistencyTest
     - python test.py
