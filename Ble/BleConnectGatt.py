@@ -31,7 +31,9 @@ class AnyDevice(gatt.Device):
                     #print("[%s]    Characteristic [%s]" % (self.mac_address, characteristic.uuid))
 
     def characteristic_value_updated(self, characteristic, value):
-        print(value)
+        is_connected = value[0]
+        heartbeat = value[1]
+        print(is_connected, heartbeat)
 
 device = AnyDevice(mac_address='F1:1D:4A:90:FC:BD', manager=manager)
 device.connect()
