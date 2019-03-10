@@ -5,3 +5,4 @@ click
 matplotlib
 sklearn
 gatt
+PyQt5
