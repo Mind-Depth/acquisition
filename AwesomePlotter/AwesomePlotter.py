@@ -6,10 +6,9 @@ from enum import Enum
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QHBoxLayout, QSizePolicy, QMessageBox, QWidget, QPushButton, QDesktopWidget, QAction, QFileDialog
 from PyQt5.QtGui import QIcon, QFont
 
-from numpy import loadtxt
-
 from WidgetPlot import WidgetPlot
 from ErrorDialog import ErrorDialog
+from CsvReader import CsvReader
 
 qss = """
 QToolButton { 
@@ -21,21 +20,8 @@ class AwsPlotterState(Enum):
     IDLE = 0
     LOADED = 1
     PLAYING = 2
-    BLE_CONNECTED = 3
-
-class CsvReader():
-
-    def __init__(self, filepath):
-        super().__init__()
-        self.filepath = filepath
-        self.dataset = self.loadCsv()
-
-    def loadCsv(self):
-        dataset = loadtxt(self.filepath, delimiter=",")
-        return dataset
-    
-    def getData(self):
-        return self.dataset
+    PAUSED = 3
+    BLE_CONNECTED = 4
 
 class AwesomePlotter(QMainWindow):
 
@@ -107,20 +93,37 @@ class AwesomePlotter(QMainWindow):
 
     def launchSimulation(self):
         source = self.sender()
-        if self.state is not AwsPlotterState.LOADED:
+        if self.state is AwsPlotterState.PAUSED:
+            print('Resuming simulation...')
+            self.state = AwsPlotterState.PLAYING
+            source.setText('Pause')
+            self.graph.resumeMockPlaying()
+        elif self.state is AwsPlotterState.PLAYING:
+            print('Pausing simulation...')
+            self.state = AwsPlotterState.PAUSED
+            source.setText('Play')
+            self.graph.pauseMockPlaying()
+        elif self.state is AwsPlotterState.IDLE:
             ErrorDialog(self, 'Please, load datas or connect a BLE device before launching the simulation')
         else:
             print('Launching simulation...')
+            self.state = AwsPlotterState.PLAYING
             source.setText('Pause')
             self.graph.clearData()
+            self.graph.launchMockPlaying()
         
 
     def stopSimulation(self):
-        self.playButton.setText('Play')
-        print('Stopping simulation...')
+        if self.state is AwsPlotterState.PLAYING:
+            print('Stopping simulation...')
+            self.playButton.setText('Play')
+            self.graph.stopMockPlaying()
+            self.graph.plotData()
+            self.state = AwsPlotterState.LOADED
         
     def clearSimulation(self):
         if self.state is not AwsPlotterState.IDLE:
+            print('Clearing simulation...')
             self.graph.clearData()
             self.playButton.setText('Play')
             self.state = AwsPlotterState.IDLE
@@ -135,8 +138,9 @@ class AwesomePlotter(QMainWindow):
         filename = self.openFileDialog()
         if filename:
             csvR = CsvReader(filename)
-            data = csvR.getData()
-            self.graph.plotData(data)
+            loadedData = csvR.getData()
+            self.graph.loadData(loadedData)
+            self.graph.plotData()
             self.state = AwsPlotterState.LOADED
 
 if __name__ == '__main__':

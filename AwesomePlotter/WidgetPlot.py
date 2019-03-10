@@ -2,6 +2,9 @@
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QHBoxLayout, QSizePolicy, QMessageBox, QWidget, QPushButton, QDesktopWidget, QAction, QFileDialog
 from matplotlib.backends.backend_qt5agg import (FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
+import numpy as np 
+
+
 from Plotter import Plotter
 
 class WidgetPlot(QWidget):
@@ -15,10 +18,36 @@ class WidgetPlot(QWidget):
         dockLayout.setMenuBar(graphToolBar)
         self.setLayout(dockLayout)
         self.layout().addWidget(self.canvas)
+        self.iterCount = 0
         
-    def plotData(self, data):
-        self.canvas.plotData(data)
+    def loadData(self, data):
+        self.loadedData = data
+    
+    def plotData(self):
+        self.canvas.plotData(self.loadedData)
+
+    def plotPoint(self, point):
+        arr = np.array(self.loadedData[self.iterCount])
+        self.canvas.plotPoint(arr, self.iterCount)
 
     def clearData(self):
         self.canvas.clearData()
-        
+
+    def launchMockPlaying(self):
+        self.timer = self.canvas.new_timer(1000, [(self.updateCanvas, (), {})])
+        self.timer.start()
+
+    def stopMockPlaying(self):
+        self.timer.stop()
+        self.iterCount = 0
+        self.clearData()
+    
+    def pauseMockPlaying(self):
+        self.timer.stop()
+
+    def resumeMockPlaying(self):
+        self.timer.start()
+
+    def updateCanvas(self):
+        self.plotPoint(self.iterCount)
+        self.iterCount += 1

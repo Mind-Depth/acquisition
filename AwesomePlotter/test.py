@@ -35,7 +35,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         self._dynamic_ax = dynamic_canvas.figure.subplots()
         self._timer = dynamic_canvas.new_timer(
-            100, [(self._update_canvas, (), {})])
+            1000, [(self._update_canvas, (), {})])
         self._timer.start()
 
     def _update_canvas(self):
