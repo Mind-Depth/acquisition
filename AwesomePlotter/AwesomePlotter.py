@@ -1,15 +1,15 @@
 #!/usr/local/bin/python3
 
 import sys
- 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QHBoxLayout, QSizePolicy, QMessageBox, QWidget, QPushButton, QDesktopWidget, QAction
-from PyQt5.QtGui import QIcon, QFont
- 
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
+from enum import Enum
 
-import random
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QHBoxLayout, QSizePolicy, QMessageBox, QWidget, QPushButton, QDesktopWidget, QAction, QFileDialog
+from PyQt5.QtGui import QIcon, QFont
+
+from numpy import loadtxt
+
+from WidgetPlot import WidgetPlot
+from ErrorDialog import ErrorDialog
 
 qss = """
 QToolButton { 
@@ -17,33 +17,31 @@ QToolButton {
 }
 """
 
-class WidgetPlot(QWidget):
-    def __init__(self, *args, **kwargs):
-        QWidget.__init__(self, *args, **kwargs)
-        self.setLayout(QVBoxLayout())
-        self.canvas = Plotter(self, width=10, height=8)
-        self.layout().addWidget(self.canvas)
+class AwsPlotterState(Enum):
+    IDLE = 0
+    LOADED = 1
+    PLAYING = 2
+    BLE_CONNECTED = 3
 
-class Plotter(FigureCanvas):
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        FigureCanvas.__init__(self, fig)
-        self.setParent(parent)
-        FigureCanvas.setSizePolicy(self,
-                QSizePolicy.Expanding,
-                QSizePolicy.Expanding)
-        FigureCanvas.updateGeometry(self)
-        self.initUI()
+class CsvReader():
 
-    def initUI(self):
-        ax = self.figure.add_subplot(111)
-        ax.set_xlabel('Time')
-        ax.set_ylabel('BPM')
+    def __init__(self, filepath):
+        super().__init__()
+        self.filepath = filepath
+        self.dataset = self.loadCsv()
+
+    def loadCsv(self):
+        dataset = loadtxt(self.filepath, delimiter=",")
+        return dataset
+    
+    def getData(self):
+        return self.dataset
 
 class AwesomePlotter(QMainWindow):
 
     def __init__(self):
         super().__init__()
+        self.state = AwsPlotterState.IDLE
         self.width = 1200
         self.height = 800
         self.title = 'Awesome Plotter (mais agents de la paix avant tout)'
@@ -71,11 +69,14 @@ class AwesomePlotter(QMainWindow):
         hbox = QHBoxLayout()
         self.playButton = QPushButton('Play', self)
         self.stopButton = QPushButton('Stop', self)
+        self.clearButton = QPushButton('Clear', self)
         self.playButton.clicked[bool].connect(self.launchSimulation)
         self.stopButton.clicked[bool].connect(self.stopSimulation)
+        self.clearButton.clicked[bool].connect(self.clearSimulation)
 
         hbox.addWidget(self.playButton)
         hbox.addWidget(self.stopButton)
+        hbox.addWidget(self.clearButton)
         return hbox
 
     def setupToolbar(self):
@@ -89,25 +90,54 @@ class AwesomePlotter(QMainWindow):
         self.toolbar.addAction(bleModeAct)
         self.toolbar.addAction(fileModeAct)
 
+    def openFileDialog(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        fileName, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","CSV Files (*.csv)", options=options)
+        if not fileName:
+            ErrorDialog(self, 'Invalid File')
+        return fileName
+
     def centerWindow(self):
         qr = self.frameGeometry()
         qr.moveCenter(QDesktopWidget().availableGeometry().center())
         self.move(qr.topLeft())
 
+    ### MARK : Action callbacks ###
+
     def launchSimulation(self):
         source = self.sender()
-        source.setText('Pause')
-        print('Launching simulation...')
+        if self.state is not AwsPlotterState.LOADED:
+            ErrorDialog(self, 'Please, load datas or connect a BLE device before launching the simulation')
+        else:
+            print('Launching simulation...')
+            source.setText('Pause')
+            self.graph.clearData()
+        
 
     def stopSimulation(self):
         self.playButton.setText('Play')
         print('Stopping simulation...')
+        
+    def clearSimulation(self):
+        if self.state is not AwsPlotterState.IDLE:
+            self.graph.clearData()
+            self.playButton.setText('Play')
+            self.state = AwsPlotterState.IDLE
 
     def enableBleMode(self):
         print('Engaging bluetooth mode...')
-
+        
     def enableFileImportMode(self):
         print('Engaging file import mode...')
+        if self.state is not AwsPlotterState.IDLE:
+            self.graph.clearData()
+        filename = self.openFileDialog()
+        if filename:
+            csvR = CsvReader(filename)
+            data = csvR.getData()
+            self.graph.plotData(data)
+            self.state = AwsPlotterState.LOADED
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
