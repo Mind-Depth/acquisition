@@ -3,12 +3,12 @@
 import sys
 from enum import Enum
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QHBoxLayout, QSizePolicy, QMessageBox, QWidget, QPushButton, QDesktopWidget, QAction, QFileDialog
-from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QHBoxLayout, QSizePolicy, QMessageBox, QWidget, QPushButton, QDesktopWidget, QAction, QFileDialog, QCheckBox
 
-from WidgetPlot import WidgetPlot
-from ErrorDialog import ErrorDialog
-from CsvReader import CsvReader
+from Widgets.WidgetPlot import WidgetPlot
+from Widgets.ErrorDialog import ErrorDialog
+from Utils.CsvReader import CsvReader
 
 qss = """
 QToolButton { 
@@ -59,10 +59,13 @@ class AwesomePlotter(QMainWindow):
         self.playButton.clicked[bool].connect(self.launchSimulation)
         self.stopButton.clicked[bool].connect(self.stopSimulation)
         self.clearButton.clicked[bool].connect(self.clearSimulation)
+        self.aiCb = QCheckBox('AI realtime analyse', self)
+        self.aiCb.stateChanged.connect(self.updateAiUsage)
 
         hbox.addWidget(self.playButton)
         hbox.addWidget(self.stopButton)
         hbox.addWidget(self.clearButton)
+        hbox.addWidget(self.aiCb)
         return hbox
 
     def setupToolbar(self):
@@ -142,6 +145,12 @@ class AwesomePlotter(QMainWindow):
             self.graph.loadData(loadedData)
             self.graph.plotData()
             self.state = AwsPlotterState.LOADED
+
+    def updateAiUsage(self, state):
+        if state == Qt.Checked:
+            print("AIRT enabled...")
+        else:
+            print("AIRT disabled...")
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
