@@ -9,6 +9,8 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QHBox
 from Widgets.WidgetPlot import WidgetPlot
 from Widgets.ErrorDialog import ErrorDialog
 from Utils.CsvReader import CsvReader
+from Interfaces.IGraphicalUpdateHandler import IGraphicalUpdateHandler
+from Interfaces.IGraphicalUpdateHandler import IGraphicalUpdateHandlerFinalMeta
 
 qss = """
 QToolButton { 
@@ -23,7 +25,7 @@ class AwsPlotterState(Enum):
     PAUSED = 3
     BLE_CONNECTED = 4
 
-class AwesomePlotter(QMainWindow):
+class AwesomePlotter(IGraphicalUpdateHandler, QMainWindow, metaclass=IGraphicalUpdateHandlerFinalMeta):
 
     def __init__(self):
         super().__init__()
@@ -69,15 +71,15 @@ class AwesomePlotter(QMainWindow):
         return hbox
 
     def setupToolbar(self):
-        bleModeAct = QAction('Bluetooth Mode', self)
-        bleModeAct.triggered.connect(self.enableBleMode)
+        recordModeAct = QAction('Record Mode', self)
+        recordModeAct.triggered.connect(self.enableRecordMode)
         fileModeAct = QAction('Open LogFile', self)
         fileModeAct.triggered.connect(self.enableFileImportMode)
 
         self.toolbar = self.addToolBar('Main Toolbar')
         self.toolbar.setMovable(False)
-        self.toolbar.addAction(bleModeAct)
         self.toolbar.addAction(fileModeAct)
+        self.toolbar.addAction(recordModeAct)
 
     def openFileDialog(self):
         options = QFileDialog.Options()
@@ -92,7 +94,12 @@ class AwesomePlotter(QMainWindow):
         qr.moveCenter(QDesktopWidget().availableGeometry().center())
         self.move(qr.topLeft())
 
-    ### MARK : Action callbacks ###
+    ### MARK : IGraphicalUpdateHandler callbacks ###
+
+    def onGraphUpdate(self):
+        print('Plop')
+
+    ### MARK : Actions callbacks ###
 
     def launchSimulation(self):
         source = self.sender()
@@ -115,7 +122,6 @@ class AwesomePlotter(QMainWindow):
             self.graph.clearData()
             self.graph.launchMockPlaying()
         
-
     def stopSimulation(self):
         if self.state is AwsPlotterState.PLAYING:
             print('Stopping simulation...')
@@ -131,7 +137,7 @@ class AwesomePlotter(QMainWindow):
             self.playButton.setText('Play')
             self.state = AwsPlotterState.IDLE
 
-    def enableBleMode(self):
+    def enableRecordMode(self):
         print('Engaging bluetooth mode...')
         
     def enableFileImportMode(self):

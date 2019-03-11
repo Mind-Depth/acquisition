@@ -4,14 +4,14 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QHBox
 from matplotlib.backends.backend_qt5agg import (FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 import numpy as np 
 
-
 from Widgets.Plotter import Plotter
 
 class WidgetPlot(QWidget):
-    def __init__(self, *args, **kwargs):
-        QWidget.__init__(self, *args, **kwargs)
-        self.canvas = Plotter(self, width=10, height=8)
+    def __init__(self, handler):
+        QWidget.__init__(self)
 
+        self.handler = handler
+        self.canvas = Plotter(self, width=10, height=8)
         graphToolBar = NavigationToolbar(self.canvas, self)
         graphToolBar.setMovable(False)
         dockLayout = QVBoxLayout()
@@ -49,5 +49,6 @@ class WidgetPlot(QWidget):
         self.timer.start()
 
     def updateCanvas(self):
+        self.handler.onGraphUpdate()
         self.plotPoint(self.iterCount)
         self.iterCount += 1
