@@ -6,16 +6,16 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLab
 from PyQt5 import QtGui
 
 from Widgets.WidgetRecorderPlotter import WidgetRecorderPlotter
+from Controllers.SessionRecorderController import SessionRecorderController
 
 class AwsRecorderState(Enum):
     IDLE = 0
     RECORDING = 1
 
 class AwesomeSessionRecorder(QWidget):
-    def __init__(self, sessionName):
+    def __init__(self):
         super().__init__()
         print("Opening AWSSR...")
-        self.sessionName = sessionName
         self.state = AwsRecorderState.IDLE
         self.initUI()
 
@@ -23,8 +23,8 @@ class AwesomeSessionRecorder(QWidget):
         self.mainLayout = QVBoxLayout(self)
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
 
-        label = self.setupProjectNameLabel()
-        self.mainLayout.addWidget(label)
+        self.sessionLabel = self.setupProjectNameLabel("Nameless Session")
+        self.mainLayout.addWidget(self.sessionLabel)
 
         self.graph = WidgetRecorderPlotter()
         self.mainLayout.addWidget(self.graph)
@@ -36,11 +36,11 @@ class AwesomeSessionRecorder(QWidget):
 
         self.show()
 
-    def setupProjectNameLabel(self):
+    def setupProjectNameLabel(self, projectName):
         label = QLabel()
         font = QtGui.QFont(str(QtGui.QFont().defaultFamily()), 32, QtGui.QFont.Bold)
         label.setFont(font)
-        label.setText(self.sessionName)
+        label.setText(projectName)
         label.setMargin(10)
         return label
 
@@ -53,20 +53,24 @@ class AwesomeSessionRecorder(QWidget):
     def setupCommandPanel(self):
         panelLayout = QHBoxLayout()
         self.playButton = QPushButton('Play', self)
+        self.playButton.setCheckable(True)
         self.stopButton = QPushButton('Stop', self)
-        self.clearButton = QPushButton('Clear', self)
-        self.saveButton = QPushButton('Save', self)
+        self.clearButton = QPushButton('Save and Clear', self)
         self.playButton.clicked[bool].connect(self.launchRecord)
         self.stopButton.clicked[bool].connect(self.stopRecord)
         self.clearButton.clicked[bool].connect(self.clearRecord)
-        self.saveButton.clicked[bool].connect(self.saveRecord)
 
         panelLayout.addWidget(self.playButton)
         panelLayout.addWidget(self.stopButton)
         panelLayout.addWidget(self.clearButton)
-        panelLayout.addWidget(self.saveButton)
 
         return panelLayout
+
+    def loadSession(self, sessionName):
+        self.sessionName = sessionName
+        self.sessionRecorder = SessionRecorderController(sessionName)
+        self.sessionRecorder.createEnv()
+        self.sessionLabel.setText(sessionName)
 
     def closeWidget(self):
         print("Closing AWSSR...")
@@ -77,6 +81,7 @@ class AwesomeSessionRecorder(QWidget):
     def logEvent(self):
         if self.state is AwsRecorderState.RECORDING:
             self.graph.logEvent()
+            self.sessionRecorder.addEvent(self.graph.getActualTime())
             print('New event logged at t=' + str(self.graph.getActualTime()))
 
     def launchRecord(self):
@@ -88,6 +93,7 @@ class AwesomeSessionRecorder(QWidget):
     def stopRecord(self):
         if self.state is AwsRecorderState.RECORDING:
             print('Stoping record...')
+            self.playButton.setChecked(False)
             self.state = AwsRecorderState.IDLE
             self.graph.stopRecording()
 
@@ -95,12 +101,6 @@ class AwesomeSessionRecorder(QWidget):
         if self.state is AwsRecorderState.RECORDING:
             self.stopRecord()
         print('Clearing record...')
+        self.sessionRecorder.saveData()
         self.graph.clearRecording()
-
-    def saveRecord(self):
-        print('Saving record...')
-
-    # MARK : IGraphicalUpdateHandler callbacks
-
-    def onGraphUpdate(self, point, time):
-        print('BIP')
+        self.sessionRecorder.flushData()

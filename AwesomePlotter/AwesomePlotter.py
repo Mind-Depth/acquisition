@@ -40,9 +40,8 @@ class AwesomePlotter(QMainWindow):
         self.setupToolbar()
 
         # Inflate with reader by default
-        #self.instantiateAwsdr()
-        self.instantiateAwssr("Session0")
-        self.inflateMainWidget(self.awssr)
+        self.instantiateAwsdr()
+        self.inflateMainWidget(self.awsdr)
 
         self.setWindowTitle(self.title)
         self.setGeometry(0, 0, self.width, self.height)
@@ -78,7 +77,8 @@ class AwesomePlotter(QMainWindow):
         projectName, ok = QInputDialog.getText(self, 'Session Creation', 'Enter the session name:')
         if ok:
             print('Creating the ' + str(projectName) + ' project...')
-        return projectName, ok
+            self.awssr.loadSession(projectName)
+            self.state = AwsPlotterState.RECORDING
 
     def launchAwsdrFileImport(self):
         filename = self.openFileDialog()
@@ -89,34 +89,36 @@ class AwesomePlotter(QMainWindow):
     def instantiateAwsdr(self):
         self.awsdr = AwesomeDataReader()
 
-    def instantiateAwssr(self, sessionName):
-        self.awssr = AwesomeSessionRecorder(sessionName)
+    def instantiateAwssr(self):
+        self.awssr = AwesomeSessionRecorder()
 
     # MARK : Actions callbacks
 
     def enableRecordingMode(self):
-        if self.state is AwsPlotterState.PLAYING:
-            print('Engaging recording mode...')
-            projectName, isValid = self.openRecordCreationDialog()
-            if not isValid:
-                return
+        print('Engaging recording mode...')
+        if self.state is AwsPlotterState.RECORDING:
+            self.awssr.clearRecord()
+            self.openRecordCreationDialog()
+        elif self.state is AwsPlotterState.PLAYING:
+            self.awsdr.clearSimulation()
             self.awsdr.closeWidget()
-            if self.awsdr is None:
-                self.instantiateAwssr()
-            self.awssr = AwesomeSessionRecorder(projectName)
+
+            self.instantiateAwssr()
             self.inflateMainWidget(self.awssr)
-        elif self.state is AwsPlotterState.RECORDING:
-            pass
+            self.openRecordCreationDialog()
         
     def enableFileImportMode(self):
         print('Engaging file import mode...')
         if self.state is AwsPlotterState.PLAYING:
-            if self.awsdr is None:
-                self.instantiateAwsdr()
             self.awsdr.clearSimulation()
             self.launchAwsdrFileImport()
         elif self.state is AwsPlotterState.RECORDING:
+            self.awssr.clearRecord()
             self.awssr.closeWidget()
+
+            self.instantiateAwsdr()
+            self.inflateMainWidget(self.awsdr)
+            self.launchAwsdrFileImport()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

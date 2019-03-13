@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QChe
 
 from Widgets.WidgetReaderPlotter import WidgetReaderPlotter
 from Widgets.ErrorDialog import ErrorDialog
-from Utils.CsvReader import CsvReader
+from Utils.CsvUtils import loadCsv
 from FearClassifier import FearClassifier
 from Interfaces.IGraphicalUpdateHandler import IGraphicalUpdateHandler
 from Interfaces.IAIBehaviourHandler import IAIBehaviourHandler
@@ -82,8 +82,7 @@ class AwesomeDataReader(QWidget, IGraphicalUpdateHandler, IAIBehaviourHandler, m
     def importFile(self, fileName):
         if self.state is not AwsReaderState.IDLE:
             self.graph.clearData()
-        csvR = CsvReader(fileName)
-        loadedData = csvR.getData()
+        loadedData = loadCsv(fileName)
         self.graph.loadData(loadedData)
         self.graph.plotData()
         self.plotAiSegments(loadedData)

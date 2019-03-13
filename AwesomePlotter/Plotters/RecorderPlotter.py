@@ -24,7 +24,7 @@ class RecorderPlotter(FigureCanvas):
         self.ax = self.figure.add_subplot(211)
         self.ax2 = self.figure.add_subplot(212)
         self.initAxesLabel(self.ax, yLabel='BPM')
-        self.initAxesLabel(self.ax2, 'Time')
+        self.initAxesLabel(self.ax2, xLabel='Time')
         self.ax.xaxis.set_visible(False)
         self.ax2.yaxis.set_visible(False)
 
