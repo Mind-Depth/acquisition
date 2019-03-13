@@ -4,9 +4,9 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QHBox
 from matplotlib.backends.backend_qt5agg import (FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 import numpy as np 
 
-from Widgets.Plotter import Plotter
+from Plotter import Plotter
 
-class WidgetPlot(QWidget):
+class WidgetPlotter(QWidget):
     def __init__(self, handler):
         QWidget.__init__(self)
 

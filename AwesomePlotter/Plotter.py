@@ -15,16 +15,19 @@ class Plotter(FigureCanvas):
                 QSizePolicy.Expanding,
                 QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
-        self.rng = 30
+        self.rng = 40
         self.initUI()
 
     def initUI(self):
         self.ax = self.figure.add_subplot(111)
+        self.initAxesLabels()
+
+    def initAxesLabels(self):
         self.ax.set_xlabel('Time')
         self.ax.set_ylabel('BPM')
 
     def plotData(self, data, color):
-        # TODO // SAME SCALAR HERE >:(
+        # TODO // PUT SAME SCALAR HERE >:(
         xPoints = []
         yPoints = []
         i = 0
@@ -46,7 +49,7 @@ class Plotter(FigureCanvas):
 
     def adaptRange(self, time):
         if time < self.rng:
-            minTime = -self.rng + 1
+            minTime = -(self.rng) + time
         else:
             minTime = time - self.rng
         maxTime = time + self.rng
@@ -55,4 +58,5 @@ class Plotter(FigureCanvas):
 
     def clearData(self):
         self.ax.clear()
+        self.initAxesLabels()
         self.draw()
