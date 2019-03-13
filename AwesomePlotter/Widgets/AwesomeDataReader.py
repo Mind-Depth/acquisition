@@ -4,7 +4,7 @@ from enum import Enum
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QCheckBox
 
-from Widgets.WidgetPlotter import WidgetPlotter
+from Widgets.WidgetReaderPlotter import WidgetReaderPlotter
 from Widgets.ErrorDialog import ErrorDialog
 from Utils.CsvReader import CsvReader
 from FearClassifier import FearClassifier
@@ -12,26 +12,27 @@ from Interfaces.IGraphicalUpdateHandler import IGraphicalUpdateHandler
 from Interfaces.IAIBehaviourHandler import IAIBehaviourHandler
 from Interfaces.IGraphicalUpdateHandler import IGraphicalUpdateHandlerFinalMeta
 
-class AwsPlotterState(Enum):
+class AwsReaderState(Enum):
     IDLE = 0
     LOADED = 1
     PLAYING = 2
     PAUSED = 3
-    BLE_CONNECTED = 4
 
 class AwesomeDataReader(QWidget, IGraphicalUpdateHandler, IAIBehaviourHandler, metaclass=IGraphicalUpdateHandlerFinalMeta):
 
     def __init__(self):
         super().__init__()
-        self.state = AwsPlotterState.IDLE
+        print("Opening AWSDR...")
+        self.state = AwsReaderState.IDLE
         self.ai = FearClassifier(handler=self)
         self.ai.trainIA()
         self.initUI()
 
     def initUI(self):
         self.mainLayout = QVBoxLayout(self)
+        self.mainLayout.setContentsMargins(0, 0, 0, 0)
 
-        self.graph = WidgetPlotter(self)
+        self.graph = WidgetReaderPlotter(self)
         self.mainLayout.addWidget(self.graph)
 
         commandPanelLayout = self.setupCommandPanel()
@@ -66,7 +67,7 @@ class AwesomeDataReader(QWidget, IGraphicalUpdateHandler, IAIBehaviourHandler, m
             self.graph.plotPolyline(segment, color='-r')
 
     def updateAiUsage(self, state):
-        if self.state is AwsPlotterState.PLAYING or self.state is AwsPlotterState.PAUSED:
+        if self.state is AwsReaderState.PLAYING or self.state is AwsReaderState.PAUSED:
             ErrorDialog(self, 'Unable to disable AIRT while reading, please stop the reading and try again')
             if not state:
                 self.aiCb.setChecked(Qt.Checked)
@@ -79,14 +80,18 @@ class AwesomeDataReader(QWidget, IGraphicalUpdateHandler, IAIBehaviourHandler, m
             print("AIRT disabled...")
 
     def importFile(self, fileName):
-        if self.state is not AwsPlotterState.IDLE:
+        if self.state is not AwsReaderState.IDLE:
             self.graph.clearData()
         csvR = CsvReader(fileName)
         loadedData = csvR.getData()
         self.graph.loadData(loadedData)
         self.graph.plotData()
         self.plotAiSegments(loadedData)
-        self.state = AwsPlotterState.LOADED
+        self.state = AwsReaderState.LOADED
+
+    def closeWidget(self):
+        print("Closing AWSDR...")
+        self.close()
 
     ### MARK : IAIBehaviourHandler callbacks ###
 
@@ -103,41 +108,41 @@ class AwesomeDataReader(QWidget, IGraphicalUpdateHandler, IAIBehaviourHandler, m
 
     def launchSimulation(self):
         source = self.sender()
-        if self.state is AwsPlotterState.PAUSED:
+        if self.state is AwsReaderState.PAUSED:
             print('Resuming simulation...')
-            self.state = AwsPlotterState.PLAYING
+            self.state = AwsReaderState.PLAYING
             source.setText('Pause')
             self.graph.resumeMockPlaying()
-        elif self.state is AwsPlotterState.PLAYING:
+        elif self.state is AwsReaderState.PLAYING:
             print('Pausing simulation...')
-            self.state = AwsPlotterState.PAUSED
+            self.state = AwsReaderState.PAUSED
             source.setText('Play')
             self.graph.pauseMockPlaying()
-        elif self.state is AwsPlotterState.IDLE:
+        elif self.state is AwsReaderState.IDLE:
             ErrorDialog(self, 'Please, load datas or connect a BLE device before launching the simulation')
         else:
             print('Launching simulation...')
-            self.state = AwsPlotterState.PLAYING
+            self.state = AwsReaderState.PLAYING
             source.setText('Pause')
             self.graph.clearData()
             self.graph.launchMockPlaying()
         
     def stopSimulation(self):
-        if self.state is AwsPlotterState.PLAYING or self.state is AwsPlotterState.PAUSED:
+        if self.state is AwsReaderState.PLAYING or self.state is AwsReaderState.PAUSED:
             print('Stopping simulation...')
             self.playButton.setText('Play')
             self.graph.stopMockPlaying()
             self.graph.plotData()
             self.plotAiSegments(self.graph.getLoadedData())
             self.ai.flushCurrentData()
-            self.state = AwsPlotterState.LOADED
+            self.state = AwsReaderState.LOADED
         
     def clearSimulation(self):
-        if self.state is not AwsPlotterState.IDLE:
-            if self.state is AwsPlotterState.PLAYING or self.state is AwsPlotterState.PAUSED:
+        if self.state is not AwsReaderState.IDLE:
+            if self.state is AwsReaderState.PLAYING or self.state is AwsReaderState.PAUSED:
                 self.stopSimulation()
             print('Clearing simulation...')
             self.graph.clearData()
             self.ai.flushCurrentData()
             self.playButton.setText('Play')
-            self.state = AwsPlotterState.IDLE
+            self.state = AwsReaderState.IDLE

@@ -6,10 +6,11 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.animation as animation
 
-class Plotter(FigureCanvas):
+class ReaderPlotter(FigureCanvas):
     def __init__(self, parent=None, width=5, height=4, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi)
         FigureCanvas.__init__(self, fig)
+
         self.setParent(parent)
         FigureCanvas.setSizePolicy(self,
                 QSizePolicy.Expanding,

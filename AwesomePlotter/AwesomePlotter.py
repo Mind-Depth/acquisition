@@ -5,8 +5,10 @@ from enum import Enum
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QDesktopWidget, QAction, QFileDialog, QInputDialog
+from PyQt5 import QtGui
 
 from Widgets.AwesomeDataReader import AwesomeDataReader
+from Widgets.AwesomeSessionRecorder import AwesomeSessionRecorder
 
 qss = """
 QToolButton { 
@@ -14,7 +16,7 @@ QToolButton {
 }
 """
 
-class AwsStatusState(Enum):
+class AwsPlotterState(Enum):
     PLAYING = 0
     RECORDING = 1
 
@@ -24,7 +26,9 @@ class AwesomePlotter(QMainWindow):
         self.width = 1200
         self.height = 800
         self.title = 'Awesome Data Reader (mais agents de la paix avant tout)'
-        self.state = AwsStatusState.PLAYING
+        self.state = AwsPlotterState.PLAYING
+        self.awsdr = None
+        self.awssr = None
         self.initUI()
 
     def initUI(self):
@@ -35,8 +39,10 @@ class AwesomePlotter(QMainWindow):
 
         self.setupToolbar()
 
-        self.awsdr = AwesomeDataReader()
-        self.mainLayout.addWidget(self.awsdr)
+        # Inflate with reader by default
+        #self.instantiateAwsdr()
+        self.instantiateAwssr("Session0")
+        self.inflateMainWidget(self.awssr)
 
         self.setWindowTitle(self.title)
         self.setGeometry(0, 0, self.width, self.height)
@@ -50,7 +56,7 @@ class AwesomePlotter(QMainWindow):
     
     def setupToolbar(self):
         recordModeAct = QAction('Record Mode', self)
-        recordModeAct.triggered.connect(self.enableRecordMode)
+        recordModeAct.triggered.connect(self.enableRecordingMode)
         fileModeAct = QAction('Open LogFile', self)
         fileModeAct.triggered.connect(self.enableFileImportMode)
 
@@ -58,6 +64,9 @@ class AwesomePlotter(QMainWindow):
         self.toolbar.setMovable(False)
         self.toolbar.addAction(fileModeAct)
         self.toolbar.addAction(recordModeAct)
+
+    def inflateMainWidget(self, widget):
+        self.mainLayout.addWidget(widget)
 
     def openFileDialog(self):
         options = QFileDialog.Options()
@@ -69,24 +78,45 @@ class AwesomePlotter(QMainWindow):
         projectName, ok = QInputDialog.getText(self, 'Session Creation', 'Enter the session name:')
         if ok:
             print('Creating the ' + str(projectName) + ' project...')
+        return projectName, ok
 
-    def launchImport(self):
+    def launchAwsdrFileImport(self):
         filename = self.openFileDialog()
         if filename:
             self.awsdr.importFile(filename)
-            self.state = AwsStatusState.PLAYING
+            self.state = AwsPlotterState.PLAYING
 
-    def enableRecordMode(self):
-        print('Engaging recording mode...')
-        self.openRecordCreationDialog()
+    def instantiateAwsdr(self):
+        self.awsdr = AwesomeDataReader()
+
+    def instantiateAwssr(self, sessionName):
+        self.awssr = AwesomeSessionRecorder(sessionName)
+
+    # MARK : Actions callbacks
+
+    def enableRecordingMode(self):
+        if self.state is AwsPlotterState.PLAYING:
+            print('Engaging recording mode...')
+            projectName, isValid = self.openRecordCreationDialog()
+            if not isValid:
+                return
+            self.awsdr.closeWidget()
+            if self.awsdr is None:
+                self.instantiateAwssr()
+            self.awssr = AwesomeSessionRecorder(projectName)
+            self.inflateMainWidget(self.awssr)
+        elif self.state is AwsPlotterState.RECORDING:
+            pass
         
     def enableFileImportMode(self):
         print('Engaging file import mode...')
-        if self.state is AwsStatusState.PLAYING:
+        if self.state is AwsPlotterState.PLAYING:
+            if self.awsdr is None:
+                self.instantiateAwsdr()
             self.awsdr.clearSimulation()
-            self.launchImport()
-        elif self.state is AwsStatusState.RECORDING:
-            pass
+            self.launchAwsdrFileImport()
+        elif self.state is AwsPlotterState.RECORDING:
+            self.awssr.closeWidget()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
