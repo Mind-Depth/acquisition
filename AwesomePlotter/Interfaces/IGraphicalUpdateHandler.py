@@ -6,5 +6,5 @@ class IGraphicalUpdateHandlerFinalMeta(sip.wrappertype, abc.ABCMeta):
 
 class IGraphicalUpdateHandler(abc.ABC):
     @abc.abstractmethod
-    def onGraphUpdate(self):
+    def onGraphUpdate(self, point, time):
         pass

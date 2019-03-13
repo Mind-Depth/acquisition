@@ -23,12 +23,17 @@ class WidgetPlot(QWidget):
     def loadData(self, data):
         self.loadedData = data
     
+    def getLoadedData(self):
+        return self.loadedData
+
     def plotData(self):
-        self.canvas.plotData(self.loadedData)
+        self.plotPolyline(self.loadedData)
+
+    def plotPolyline(self, buff, color='-b'):
+        self.canvas.plotData(buff, color)
 
     def plotPoint(self, point):
-        arr = np.array(self.loadedData[self.iterCount])
-        self.canvas.plotPoint(arr, self.iterCount)
+        self.canvas.plotPoint(point, self.iterCount)
 
     def clearData(self):
         self.canvas.clearData()
@@ -49,6 +54,6 @@ class WidgetPlot(QWidget):
         self.timer.start()
 
     def updateCanvas(self):
-        self.handler.onGraphUpdate()
-        self.plotPoint(self.iterCount)
+        self.handler.onGraphUpdate(self.loadedData[self.iterCount], self.iterCount)
+        self.plotPoint(self.loadedData[self.iterCount])
         self.iterCount += 1

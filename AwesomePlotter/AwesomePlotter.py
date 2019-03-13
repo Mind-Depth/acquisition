@@ -9,7 +9,9 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QHBox
 from Widgets.WidgetPlot import WidgetPlot
 from Widgets.ErrorDialog import ErrorDialog
 from Utils.CsvReader import CsvReader
+from FearClassifier import FearClassifier
 from Interfaces.IGraphicalUpdateHandler import IGraphicalUpdateHandler
+from Interfaces.IAIBehaviourHandler import IAIBehaviourHandler
 from Interfaces.IGraphicalUpdateHandler import IGraphicalUpdateHandlerFinalMeta
 
 qss = """
@@ -25,7 +27,7 @@ class AwsPlotterState(Enum):
     PAUSED = 3
     BLE_CONNECTED = 4
 
-class AwesomePlotter(IGraphicalUpdateHandler, QMainWindow, metaclass=IGraphicalUpdateHandlerFinalMeta):
+class AwesomePlotter(IGraphicalUpdateHandler, IAIBehaviourHandler, QMainWindow, metaclass=IGraphicalUpdateHandlerFinalMeta):
 
     def __init__(self):
         super().__init__()
@@ -33,6 +35,8 @@ class AwesomePlotter(IGraphicalUpdateHandler, QMainWindow, metaclass=IGraphicalU
         self.width = 1200
         self.height = 800
         self.title = 'Awesome Plotter (mais agents de la paix avant tout)'
+        self.ai = FearClassifier(handler=self)
+        self.ai.trainIA()
         self.initUI()
 
     def initUI(self):
@@ -62,6 +66,7 @@ class AwesomePlotter(IGraphicalUpdateHandler, QMainWindow, metaclass=IGraphicalU
         self.stopButton.clicked[bool].connect(self.stopSimulation)
         self.clearButton.clicked[bool].connect(self.clearSimulation)
         self.aiCb = QCheckBox('AI realtime analyse', self)
+        self.aiCb.toggle()
         self.aiCb.stateChanged.connect(self.updateAiUsage)
 
         hbox.addWidget(self.playButton)
@@ -94,10 +99,16 @@ class AwesomePlotter(IGraphicalUpdateHandler, QMainWindow, metaclass=IGraphicalU
         qr.moveCenter(QDesktopWidget().availableGeometry().center())
         self.move(qr.topLeft())
 
+    ### MARK : IAIBehaviourHandler callbacks ###
+
+    def onIaHasPredicted(self, segmentBuff):
+        self.graph.plotPolyline(segmentBuff, '-r')
+
     ### MARK : IGraphicalUpdateHandler callbacks ###
 
-    def onGraphUpdate(self):
-        print('Plop')
+    def onGraphUpdate(self, point, time):
+        if self.aiCb.isChecked():
+            self.ai.addPoint(point, time)
 
     ### MARK : Actions callbacks ###
 
@@ -123,17 +134,22 @@ class AwesomePlotter(IGraphicalUpdateHandler, QMainWindow, metaclass=IGraphicalU
             self.graph.launchMockPlaying()
         
     def stopSimulation(self):
-        if self.state is AwsPlotterState.PLAYING:
+        if self.state is AwsPlotterState.PLAYING or self.state is AwsPlotterState.PAUSED:
             print('Stopping simulation...')
             self.playButton.setText('Play')
             self.graph.stopMockPlaying()
             self.graph.plotData()
+            self.plotAiSegments(self.graph.getLoadedData())
+            self.ai.flushCurrentData()
             self.state = AwsPlotterState.LOADED
         
     def clearSimulation(self):
         if self.state is not AwsPlotterState.IDLE:
             print('Clearing simulation...')
+            if self.state is AwsPlotterState.PLAYING or self.state is AwsPlotterState.PAUSED:
+                self.stopSimulation()
             self.graph.clearData()
+            self.ai.flushCurrentData()
             self.playButton.setText('Play')
             self.state = AwsPlotterState.IDLE
 
@@ -150,9 +166,22 @@ class AwesomePlotter(IGraphicalUpdateHandler, QMainWindow, metaclass=IGraphicalU
             loadedData = csvR.getData()
             self.graph.loadData(loadedData)
             self.graph.plotData()
+            self.plotAiSegments(loadedData)
             self.state = AwsPlotterState.LOADED
 
+    def plotAiSegments(self, loadedData):
+        segments = self.ai.getFearSegments(loadedData)    
+        for segment in segments:
+            self.graph.plotPolyline(segment, color='-r')
+
     def updateAiUsage(self, state):
+        if self.state is AwsPlotterState.PLAYING or self.state is AwsPlotterState.PAUSED:
+            ErrorDialog(self, 'Unable to disable AIRT while reading, please stop the reading and try again')
+            if not state:
+                self.aiCb.setChecked(Qt.Checked)
+            else:
+                self.aiCb.setChecked(Qt.Unchecked)
+            return
         if state == Qt.Checked:
             print("AIRT enabled...")
         else:
