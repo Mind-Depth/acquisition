@@ -10,7 +10,8 @@ from Controllers.SessionRecorderController import SessionRecorderController
 
 class AwsRecorderState(Enum):
     IDLE = 0
-    RECORDING = 1
+    READY = 1
+    RECORDING = 2
 
 class AwesomeSessionRecorder(QWidget):
     def __init__(self):
@@ -71,6 +72,7 @@ class AwesomeSessionRecorder(QWidget):
         self.sessionRecorder = SessionRecorderController(sessionName)
         self.sessionRecorder.createEnv()
         self.sessionLabel.setText(sessionName)
+        self.state = AwsRecorderState.READY
 
     def closeWidget(self):
         print("Closing AWSSR...")
@@ -85,7 +87,7 @@ class AwesomeSessionRecorder(QWidget):
             print('New event logged at t=' + str(self.graph.getActualTime()))
 
     def launchRecord(self):
-        if self.state is AwsRecorderState.IDLE:
+        if self.state is AwsRecorderState.READY:
             print('Starting record...')
             self.state = AwsRecorderState.RECORDING
             self.graph.startRecording()
@@ -94,13 +96,14 @@ class AwesomeSessionRecorder(QWidget):
         if self.state is AwsRecorderState.RECORDING:
             print('Stoping record...')
             self.playButton.setChecked(False)
-            self.state = AwsRecorderState.IDLE
+            self.state = AwsRecorderState.READY
             self.graph.stopRecording()
 
     def clearRecord(self):
-        if self.state is AwsRecorderState.RECORDING:
-            self.stopRecord()
-        print('Clearing record...')
-        self.sessionRecorder.saveData()
-        self.graph.clearRecording()
-        self.sessionRecorder.flushData()
+        if self.state is not AwsRecorderState.IDLE:
+            if self.state is AwsRecorderState.RECORDING:
+                self.stopRecord()
+            print('Clearing record...')
+            self.sessionRecorder.saveData()
+            self.graph.clearRecording()
+            self.sessionRecorder.flushData()
