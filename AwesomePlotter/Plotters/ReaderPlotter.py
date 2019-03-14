@@ -20,12 +20,16 @@ class ReaderPlotter(FigureCanvas):
         self.initUI()
 
     def initUI(self):
-        self.ax = self.figure.add_subplot(111)
-        self.initAxesLabels()
+        self.ax = self.figure.add_subplot(211)
+        self.ax2 = self.figure.add_subplot(212)
+        self.initAxesLabel(self.ax, yLabel='BPM')
+        self.initAxesLabel(self.ax2, xLabel='Time')
+        self.ax.xaxis.set_visible(False)
+        self.ax2.yaxis.set_visible(False)
 
-    def initAxesLabels(self):
-        self.ax.set_xlabel('Time')
-        self.ax.set_ylabel('BPM')
+    def initAxesLabel(self, ax, xLabel=None, yLabel=None):
+        ax.set_xlabel(xLabel)
+        ax.set_ylabel(yLabel)
 
     def plotData(self, data, color):
         # TODO // PUT SAME SCALAR HERE >:(
@@ -48,6 +52,10 @@ class ReaderPlotter(FigureCanvas):
         self.ax.scatter(time, point, c=color)
         self.draw()
 
+    def plotEvents(self, time, color='blue'):
+        self.ax2.scatter(time, [0], c=color)
+        self.draw()
+
     def adaptRange(self, time):
         if time < self.rng:
             minTime = -(self.rng) + time
@@ -56,8 +64,12 @@ class ReaderPlotter(FigureCanvas):
         maxTime = time + self.rng
         self.ax.set_xlim(minTime, maxTime)
         self.ax.set_ylim(40, 150)
+        self.ax2.set_xlim(minTime, maxTime)
+        self.ax2.set_ylim(-1, 1)
 
     def clearData(self):
         self.ax.clear()
-        self.initAxesLabels()
+        self.ax2.clear()
+        self.initAxesLabel(self.ax, yLabel='BPM')
+        self.initAxesLabel(self.ax2, xLabel='Time')
         self.draw()

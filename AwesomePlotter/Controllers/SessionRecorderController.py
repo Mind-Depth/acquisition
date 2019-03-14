@@ -28,6 +28,8 @@ class SessionRecorderController():
         self.events.clear()
 
     def saveData(self):
+        if len(self.events) == 0 and len(self.biofeedbacks) == 0:
+            return
         for i in range(0, 1000):
             if not os.path.isdir(self.mainFolder + str(i)):
                 self.sessionNbr = i

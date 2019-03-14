@@ -79,13 +79,19 @@ class AwesomeDataReader(QWidget, IGraphicalUpdateHandler, IAIBehaviourHandler, m
         else:
             print("AIRT disabled...")
 
-    def importFile(self, fileName):
+    def importFile(self, filesName):
         if self.state is not AwsReaderState.IDLE:
             self.graph.clearData()
-        loadedData = loadCsv(fileName)
-        self.graph.loadData(loadedData)
-        self.graph.plotData()
-        self.plotAiSegments(loadedData)
+        for f in filesName:
+            if str.__contains__(f, 'bio.csv'):
+                loadedData = loadCsv(f)
+                self.graph.loadData(loadedData)
+                self.graph.plotData()
+                self.plotAiSegments(loadedData)
+            elif str.__contains__(f, 'ev.csv'):
+                loadedData = loadCsv(f)
+                self.graph.loadEvents(loadedData)
+                self.graph.plotEvents()
         self.state = AwsReaderState.LOADED
 
     def closeWidget(self):

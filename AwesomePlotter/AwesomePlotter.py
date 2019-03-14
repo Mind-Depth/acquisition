@@ -9,6 +9,8 @@ from PyQt5 import QtGui
 
 from Widgets.AwesomeDataReader import AwesomeDataReader
 from Widgets.AwesomeSessionRecorder import AwesomeSessionRecorder
+from Widgets.ErrorDialog import ErrorDialog
+from Utils.CsvUtils import getCsvFilesFromFolder
 
 qss = """
 QToolButton { 
@@ -70,21 +72,37 @@ class AwesomePlotter(QMainWindow):
     def openFileDialog(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","CSV Files (*.csv)", options=options)
-        return fileName
+        folderPath = QFileDialog.getExistingDirectory(self, "Select Directory", options=options)
+        if folderPath:
+            csvList = getCsvFilesFromFolder(folderPath)
+            return csvList
+        else:
+            return None
 
     def openRecordCreationDialog(self):
+        self.state = AwsPlotterState.RECORDING
         projectName, ok = QInputDialog.getText(self, 'Session Creation', 'Enter the session name:')
         if ok:
             print('Creating the ' + str(projectName) + ' project...')
             self.awssr.loadSession(projectName)
-            self.state = AwsPlotterState.RECORDING
 
     def launchAwsdrFileImport(self):
-        filename = self.openFileDialog()
-        if filename:
-            self.awsdr.importFile(filename)
-            self.state = AwsPlotterState.PLAYING
+        self.state = AwsPlotterState.PLAYING
+        files = self.openFileDialog()
+        if not files:
+            ErrorDialog(self, 'Your data folder must contain almost a bio.csv or a ev.csv file')
+            return
+        bioImported = False
+        evImported = False
+        for f in files:
+            if str.__contains__(f, 'bio.csv'):
+                bioImported = True
+            elif str.__contains__(f, 'ev.csv'):
+                evImported = True
+        if bioImported or evImported:
+            self.awsdr.importFile(files)
+        else:
+            ErrorDialog(self, 'Your data folder must contain almost a bio.csv or a ev.csv file')
 
     def instantiateAwsdr(self):
         self.awsdr = AwesomeDataReader()

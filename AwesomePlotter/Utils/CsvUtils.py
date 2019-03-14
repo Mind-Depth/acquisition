@@ -1,5 +1,6 @@
 #!/usr/local/bin/python3
 
+import os
 from numpy import loadtxt
 
 def loadCsv(filepath):
@@ -16,3 +17,11 @@ def writeCsv(fileName, buff):
             f.write(str(data) + ',')
         i += 1
     f.close() 
+
+def getCsvFilesFromFolder(folderPath):
+    csvList = []
+    fileList = os.listdir(folderPath)
+    for f in fileList:
+        if str.__contains__(f, '.csv'):
+            csvList.append(folderPath + '/' + f)
+    return csvList

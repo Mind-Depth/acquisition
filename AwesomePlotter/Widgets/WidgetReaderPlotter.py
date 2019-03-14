@@ -23,11 +23,18 @@ class WidgetReaderPlotter(QWidget):
     def loadData(self, data):
         self.loadedData = data
     
+    def loadEvents(self, events):
+        self.loadedEvents = events
+
     def getLoadedData(self):
         return self.loadedData
 
     def plotData(self):
         self.plotPolyline(self.loadedData)
+
+    def plotEvents(self):
+        for event in self.loadedEvents:
+            self.canvas.plotEvents(event)
 
     def plotPolyline(self, buff, color='-b'):
         self.canvas.plotData(buff, color)
@@ -37,6 +44,8 @@ class WidgetReaderPlotter(QWidget):
 
     def clearData(self):
         self.canvas.clearData()
+        self.loadedData = []
+        self.loadedEvents = []
 
     def launchMockPlaying(self):
         self.timer = self.canvas.new_timer(1000, [(self.updateCanvas, (), {})])
