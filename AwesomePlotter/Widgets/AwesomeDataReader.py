@@ -8,9 +8,8 @@ from Widgets.WidgetReaderPlotter import WidgetReaderPlotter
 from Widgets.ErrorDialog import ErrorDialog
 from Utils.CsvUtils import loadCsv
 from FearClassifier import FearClassifier
-from Interfaces.IGraphicalUpdateHandler import IGraphicalUpdateHandler
+from Interfaces.IGraphicalUpdateHandler import IGraphicalUpdateHandler, IGraphicalUpdateHandlerFinalMeta
 from Interfaces.IAIBehaviourHandler import IAIBehaviourHandler
-from Interfaces.IGraphicalUpdateHandler import IGraphicalUpdateHandlerFinalMeta
 
 class AwsReaderState(Enum):
     IDLE = 0
@@ -138,6 +137,7 @@ class AwesomeDataReader(QWidget, IGraphicalUpdateHandler, IAIBehaviourHandler, m
             self.playButton.setText('Play')
             self.graph.stopMockPlaying()
             self.graph.plotData()
+            self.graph.plotEvents()
             self.plotAiSegments(self.graph.getLoadedData())
             self.ai.flushCurrentData()
             self.state = AwsReaderState.LOADED

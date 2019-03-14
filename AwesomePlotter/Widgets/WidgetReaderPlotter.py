@@ -4,21 +4,23 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QHBox
 from matplotlib.backends.backend_qt5agg import (FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 import numpy as np 
 
-from Plotters.ReaderPlotter import ReaderPlotter
+from Plotters.Plotter import Plotter, PlotterType
+from Interfaces.IGraphicalUpdateHandler import IGraphicalUpdateHandler, IGraphicalUpdateHandlerFinalMeta
 
-class WidgetReaderPlotter(QWidget):
+class WidgetReaderPlotter(QWidget, IGraphicalUpdateHandler, metaclass=IGraphicalUpdateHandlerFinalMeta):
     def __init__(self, handler=None):
         QWidget.__init__(self)
 
         self.handler = handler
-        self.canvas = ReaderPlotter(self)
+        self.canvas = Plotter(self, handler=self, plotterType=PlotterType.READING)
         graphToolBar = NavigationToolbar(self.canvas, self)
         graphToolBar.setMovable(False)
         dockLayout = QVBoxLayout()
         dockLayout.setMenuBar(graphToolBar)
         self.setLayout(dockLayout)
         self.layout().addWidget(self.canvas)
-        self.iterCount = 0
+        self.loadedData = []
+        self.loadedEvents = []
         
     def loadData(self, data):
         self.loadedData = data
@@ -39,31 +41,29 @@ class WidgetReaderPlotter(QWidget):
     def plotPolyline(self, buff, color='-b'):
         self.canvas.plotData(buff, color)
 
-    def plotPoint(self, point):
-        self.canvas.plotPoint(point, self.iterCount)
+    def plotPoint(self, ax, point):
+        self.canvas.plotPoint(ax, point)
 
     def clearData(self):
         self.canvas.clearData()
-        self.loadedData = []
-        self.loadedEvents = []
 
     def launchMockPlaying(self):
-        self.timer = self.canvas.new_timer(1000, [(self.updateCanvas, (), {})])
-        self.timer.start()
+        self.canvas.startTimer()
 
     def stopMockPlaying(self):
-        self.timer.stop()
-        self.iterCount = 0
+        self.canvas.stopTimer()
         self.clearData()
     
     def pauseMockPlaying(self):
-        self.timer.stop()
+        self.canvas.stopTimer(trueStop=False)
 
     def resumeMockPlaying(self):
-        self.timer.start()
+        self.canvas.startTimer(trueStart=False)
 
-    def updateCanvas(self):
+    ### MARK : IGraphicalUpdateHandler callbacks ###
+
+    def onGraphUpdate(self, point, time):
         if self.handler is not None:
-            self.handler.onGraphUpdate(self.loadedData[self.iterCount], self.iterCount)
-        self.plotPoint(self.loadedData[self.iterCount])
-        self.iterCount += 1
+            self.handler.onGraphUpdate(self.loadedData[time], time)
+        self.plotPoint(self.canvas.ax, self.loadedData[time])
+        
