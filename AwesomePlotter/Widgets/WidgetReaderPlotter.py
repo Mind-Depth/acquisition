@@ -66,4 +66,6 @@ class WidgetReaderPlotter(QWidget, IGraphicalUpdateHandler, metaclass=IGraphical
         if self.handler is not None:
             self.handler.onGraphUpdate(self.loadedData[time], time)
         self.plotPoint(self.canvas.ax, self.loadedData[time])
+        if time in self.loadedEvents:
+            self.canvas.plotEvents(time)
         

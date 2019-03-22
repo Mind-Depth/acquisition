@@ -58,7 +58,7 @@ class AwesomePlotter(QMainWindow):
     def setupToolbar(self):
         recordModeAct = QAction('Record Mode', self)
         recordModeAct.triggered.connect(self.enableRecordingMode)
-        fileModeAct = QAction('Open LogFile', self)
+        fileModeAct = QAction('Open LogFolder', self)
         fileModeAct.triggered.connect(self.enableFileImportMode)
 
         self.toolbar = self.addToolBar('Main Toolbar')
