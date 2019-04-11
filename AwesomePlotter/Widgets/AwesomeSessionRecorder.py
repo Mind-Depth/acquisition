@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLab
 from PyQt5 import QtGui
 
 from Widgets.WidgetRecorderPlotter import WidgetRecorderPlotter
+from Widgets.ErrorDialog import ErrorDialog
 from Controllers.SessionRecorderController import SessionRecorderController
 
 class AwsRecorderState(Enum):
@@ -89,6 +90,7 @@ class AwesomeSessionRecorder(QWidget):
     def launchRecord(self):
         if self.state is AwsRecorderState.READY:
             print('Starting record...')
+            ErrorDialog(self, 'Warning : The BLE module is curently disconnected')
             self.state = AwsRecorderState.RECORDING
             self.graph.startRecording()
     
