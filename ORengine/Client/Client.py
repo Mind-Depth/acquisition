@@ -2,6 +2,9 @@
 
 import socket
 import sys
+sys.path.insert(0, '../')
+
+from Utils.OreConstants import *
 
 def client(ip, port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -11,14 +14,15 @@ def client(ip, port):
     while m_is_running:
         line = sys.stdin.readline()
         
-        if (line.strip('\n') == 'quit'):
+        if (line.strip('\n') == '/quit'):
             m_is_running = False
         else:
             sock.sendall(bytes(line, 'utf-8'))
-            response = str(sock.recv(1024), 'ascii')
-            print("Received: {}".format(response))
+            response = str(sock.recv(BUFFER_SIZE), 'utf-8')
+            if (response != ''):
+                print("Received: {}".format(response))
     sock.close()
     print('Closing ORE client...')
 
 if __name__ == "__main__":
-    client('localhost', 6666)
+    client(AI_IP, AI_PORT)

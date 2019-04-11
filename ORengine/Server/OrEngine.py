@@ -3,19 +3,21 @@
 import socket
 import threading
 import socketserver
-import abc
 import functools
+import sys
 
+sys.path.insert(0, '../')
+from Utils.OreConstants import *
 
-class ThreadedTCPRequestHandler(socketserver.StreamRequestHandler):
+class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     def __init__(self, callback, *args, **keys):
         self.m_callback = callback
         socketserver.StreamRequestHandler.__init__(self, *args, **keys)
 
     def handle(self):
         #self.request is the TCP socket connected to the client
-        self.m_data = self.request.recv(2048).strip()
-        self.m_callback(self.m_data, self.request)
+        self.m_data = self.request.recv(BUFFER_SIZE).strip()
+        self.m_callback(self.m_data.decode('utf-8'), self.request, self.client_address)
         #self.request.sendall(self.data.upper())
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
@@ -38,11 +40,12 @@ class OrEngineServer():
         self.m_server.server_close()
         print('Closing ORE server ...')
 
-    def on_command_received(self, data, socket):
-        if (data.decode('utf-8') == '/kill'):
+    def on_command_received(self, data, socket, client_address):
+        print('Received following packet from ' + str(client_address) + ' : ' + data)
+        if (data == '/kill'):
             socket.sendall(bytes('Server successfuly closed', 'utf-8'))
             self.m_is_running = False
 
 
 if __name__ == "__main__":
-    OrEngineServer('localhost', 6666)
+    OrEngineServer(AI_IP, AI_PORT)
