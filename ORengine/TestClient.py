@@ -31,11 +31,11 @@ program_state_packet = {
 
 biofeedback_packet = {
     "message_type": MessageType.BIOFEEDBACK,
-    "buffer": [],
-    "timestamps": []
+    "buffer": [55, 56, 53, 56, 58, 60, 58, 58, 59, 56],
+    "timestamps": [12345, 12346]
 }
 
-class OnionRingEngineClient():
+class OnionRingEngineTestClient():
     def __init__(self, ip, port):
         self.m_ip = ip
         self.m_port = port
@@ -65,4 +65,6 @@ class OnionRingEngineClient():
         return False
 
 if __name__ == '__main__':
-    OnionRingEngineClient(AI_IP, AI_PORT)
+    #OnionRingEngineTestClient(AI_IP, AI_PORT)
+    json_message = json.dumps(biofeedback_packet, cls=EnumEncoder)
+    print(json_message)
