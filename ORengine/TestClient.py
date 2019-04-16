@@ -4,35 +4,38 @@ import socket
 import json
 from Utils.OreEnum import MessageType
 from Utils.OreConstants import AI_PORT, AI_IP, BUFFER_SIZE
-from Utils.EnumUtils import EnumEncoder
+
+init_packet = {
+    "message_type": MessageType["INIT"]
+}
 
 control_packet_true = {
-    "message_type": MessageType.CONTROL_SESSION,
+    "message_type": MessageType["CONTROL_SESSION"],
     "status": True
 }
 
 control_packet_false = {
-    "message_type": MessageType.CONTROL_SESSION,
+    "message_type": MessageType["CONTROL_SESSION"],
     "status": False
 }
 
 fear_event_packet = {
-    "message_type": MessageType.FEAR_EVENT,
+    "message_type": MessageType["FEAR_EVENT"],
     "status_fear": True,
     "fear_accuracy": 0.0,
     "timestamp": 1234532
 }
 
 program_state_packet = {
-    "message_type": MessageType.PROGRAM_STATE,
+    "message_type": MessageType["PROGRAM_STATE"],
     "status": False,
     "message": "Ca marche pas"
 }
 
 biofeedback_packet = {
-    "message_type": MessageType.BIOFEEDBACK,
-    "buffer": [55, 56, 53, 56, 58, 60, 58, 58, 59, 56],
-    "timestamps": [12345, 12346]
+    "message_type": MessageType["BIOFEEDBACK"],
+    "bf": 55,
+    "timestamps": 14323553
 }
 
 class OnionRingEngineTestClient():
@@ -55,16 +58,16 @@ class OnionRingEngineTestClient():
 
     def parse_command(self, command):
         if (command == '/control-start'):
-            json_message = json.dumps(control_packet_true, cls=EnumEncoder)
+            json_message = json.dumps(control_packet_true)
             self.m_client_socket.send(json_message.encode())
             return True
         elif (command == '/control-stop'):
-            json_message = json.dumps(control_packet_false, cls=EnumEncoder)
+            json_message = json.dumps(control_packet_false)
             self.m_client_socket.send(json_message.encode())
             return True
         return False
 
 if __name__ == '__main__':
     #OnionRingEngineTestClient(AI_IP, AI_PORT)
-    json_message = json.dumps(biofeedback_packet, cls=EnumEncoder)
+    json_message = json.dumps(init_packet)
     print(json_message)
