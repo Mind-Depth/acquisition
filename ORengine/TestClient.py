@@ -3,10 +3,12 @@
 import socket
 import json
 from Utils.OreEnum import MessageType
-from Utils.OreConstants import AI_PORT, AI_IP, BUFFER_SIZE
+from Utils.OreConstants import AI_PORT, AI_IP
 
 init_packet = {
-    "message_type": MessageType["INIT"]
+    "message_type": MessageType["INIT"],
+    "client_ip": "190.262.15.3",
+    "client_port": 8080
 }
 
 control_packet_true = {
@@ -37,35 +39,6 @@ biofeedback_packet = {
     "bf": 55,
     "timestamps": 14323553
 }
-
-class OnionRingEngineTestClient():
-    def __init__(self, ip, port):
-        self.m_ip = ip
-        self.m_port = port
-        self.m_client_socket = socket.socket()
-        self.connect_client()
-
-    def connect_client(self):
-        self.m_client_socket.connect((self.m_ip, self.m_port))
-        message = input('-> ')
-        while message.strip() != '/quit':
-            result = self.parse_command(message.strip())
-            if (result):
-                response = self.m_client_socket.recv(BUFFER_SIZE).decode()
-                print('Response: ' + response)
-            message = input('-> ')
-        self.m_client_socket.close()
-
-    def parse_command(self, command):
-        if (command == '/control-start'):
-            json_message = json.dumps(control_packet_true)
-            self.m_client_socket.send(json_message.encode())
-            return True
-        elif (command == '/control-stop'):
-            json_message = json.dumps(control_packet_false)
-            self.m_client_socket.send(json_message.encode())
-            return True
-        return False
 
 if __name__ == '__main__':
     #OnionRingEngineTestClient(AI_IP, AI_PORT)

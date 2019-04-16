@@ -10,17 +10,11 @@ from sklearn.metrics import accuracy_score
 
 from Utils.OreEnum import FearEngineState
 
-class IAIBehaviourHandler(abc.ABC):
-    @abc.abstractmethod
-    def on_ia_has_predicted(self, segmentBuff):
-        pass
-
 class FearEngine():
-    def __init__(self, handler=None, dataset_path='./TrainingDataset/defautlDataset.csv'):
+    def __init__(self, dataset_path='./TrainingDataset/defautlDataset.csv'):
          self.m_model = XGBClassifier()
          self.m_dataset_path = dataset_path
          self.m_curr_buff = []
-         self.m_handler = handler
          self.m_chunck_size = 10
          self.m_is_running = False
          self.m_state = FearEngineState.IDLE
@@ -74,35 +68,35 @@ class FearEngine():
         else:
             return True, accuracy
 
-    def analyse_ai_result(self, handler, buff, callback):
+    def analyse_ai_result(self, buff, callback):
         result, accuracy = self.predict_buff(self.m_curr_buff)
         print('AI result : ' + str(result))
         if result:
             if self.m_state is FearEngineState.IDLE:
                 print('Start of a new fear segment')
                 self.m_state = FearEngineState.AFRAID
-                callback(handler, result, accuracy, buff[0])
+                callback(result, accuracy, buff[0])
         else:
             if self.m_state is FearEngineState.AFRAID:
                 print('End of the current fear segment')
                 self.m_state = FearEngineState.IDLE
-                callback(handler, result, accuracy, buff[self.m_chunck_size - 1])
+                callback(result, accuracy, buff[self.m_chunck_size - 1])
 
-    def add_bf(self, handler, bf, time, callback):
+    def add_bf(self, bf, time, callback):
         if len(self.m_curr_buff) < self.m_chunck_size:
             self.m_curr_buff.append([bf, time])
             print('Adding following bf: ' + str(bf) + ' captured at : ' + str(time))
             print('Current buffer (INIT MODE) : ' + str(self.m_curr_buff) + ' size = ' + str(len(self.m_curr_buff)))
             if len(self.m_curr_buff) == self.m_chunck_size:
                 print('Launching buff analysis...')
-                self.analyse_ai_result(handler, self.m_curr_buff, callback)
+                self.analyse_ai_result(self.m_curr_buff, callback)
         else:
             elem_rm = self.m_curr_buff.pop(0)
             self.m_curr_buff.append([bf, time])
             print('Adding following bf: ' + str(bf) + ' captured at : ' + str(time))
             print('Removing following bf : ' + str(elem_rm[0]) + ' captured at : ' + str(elem_rm[1]))
             print('Launching buff analysis...')
-            self.analyse_ai_result(handler, self.m_curr_buff, callback)
+            self.analyse_ai_result(self.m_curr_buff, callback)
             
     def flush_current_data(self):
         self.m_curr_buff.clear()

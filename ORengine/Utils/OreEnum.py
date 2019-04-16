@@ -15,6 +15,7 @@ class OreCommandType(Enum):
     START_AI = 0
     STOP_AI = 1
     BIOFEEDBACK = 2
+    INIT = 3
 
 class FearEngineState(Enum):
     IDLE = 0
