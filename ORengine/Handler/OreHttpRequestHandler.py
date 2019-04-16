@@ -23,7 +23,7 @@ class OreHTTPRequestHandler(BaseHTTPRequestHandler):
             self.packet_parser(jsonPacket)
         except:
             print('ERROR: Unable to parse the current Json : ' + str(body))
-            self.send_complete_response(400, PacketFactory.get_program_state_packet(False, 'Unable to parse the current Json'))"""
+            self.send_complete_response(400, PacketFactory.get_program_state_json(False, 'Unable to parse the current Json'))"""
 
     def send_complete_response(self, code, content):
         self.send_response(code)
@@ -41,7 +41,7 @@ class OreHTTPRequestHandler(BaseHTTPRequestHandler):
             self.on_biofeedback_packet_received(packet)
         else:
             print('ERROR: Unknown message_type')
-            self.send_complete_response(400, PacketFactory.get_program_state_packet(False, 'Unknown message_type'))
+            self.send_complete_response(400, PacketFactory.get_program_state_json(False, 'Unknown message_type'))
 
     def on_init_packet_received(self, packet):
         self.server.on_post_reiceived(OreCommandType.INIT, self, packet)
@@ -56,4 +56,4 @@ class OreHTTPRequestHandler(BaseHTTPRequestHandler):
             self.server.on_post_reiceived(OreCommandType.STOP_AI, self)
         else:
             print('ERROR: Unable to parse the control_session packet')
-            self.send_complete_response(400, PacketFactory.get_program_state_packet(False, 'Unable to parse the control_session packet'))
+            self.send_complete_response(400, PacketFactory.get_program_state_json(False, 'Unable to parse the control_session packet'))

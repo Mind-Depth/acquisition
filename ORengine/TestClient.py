@@ -8,7 +8,8 @@ from Utils.OreConstants import AI_PORT, AI_IP
 init_packet = {
     "message_type": MessageType["INIT"],
     "client_ip": "190.262.15.3",
-    "client_port": 8080
+    "client_port": 8080,
+    "client_rte": "/loto"
 }
 
 control_packet_true = {
