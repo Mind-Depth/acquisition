@@ -48,24 +48,6 @@ class Server():
         #a trouver mieux
         exit(0)
         
-    """
-        INIT
-        `{"message_type": "INIT", "client_ip": "190.262.15.3", "client_port": 8080, "client_rte":"/server"}`
-
-        CONTROL SESSION
-        `{"message_type": "CONTROL_SESSION", "status": true}`
-
-        FEAR EVENT
-        `{"message_type": "FEAR_EVENT", "status_fear": true, "fear_accuracy": 0.0, "timestamp": 1234532}`
-
-        PROGRAM STATE
-        `{"message_type": "PROGRAM_STATE", "status": false, "message": "Ca marche pas"}`
-
-        BIOFEEDBACK
-        `{"message_type": "BIOFEEDBACK", "bf": 55, "timestamp": 14323553}`
-    """
-
-
     #
     # ANDROID HANDLERS
     #

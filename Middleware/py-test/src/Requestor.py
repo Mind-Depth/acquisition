@@ -60,13 +60,21 @@ class Requestor():
     def handle_init(self, **kwargs):
         try:
             json_payload = {
-                "message_type": self.m_message_type['INIT'],
-                "client_ip": self.m_config.m_public_ip,
-                "client_port": self.m_config.m_port,
-                "client_rte": kwargs['route']
+                'message_type': self.m_message_type['INIT'],
+                'client_ip': self.m_config.m_public_ip,
+                'client_port': self.m_config.m_port,
+                'client_rte': kwargs['route']
             }
             response = self.post_wrapper(kwargs['address'], json_payload)
             print(response)
+            if 'program_state' not in response['data']:
+               pass # send control_session 
+            if self.m_config.m_ai_address in response['url']:
+                pass
+                
+            else:
+                pass
+                
         except:
             pass #todo handle post error
 
@@ -74,11 +82,16 @@ class Requestor():
     def handle_control_session(self, **kwargs):
         try:
             json_payload = {
-                "message_type": self.m_message_type['CONTROL_SESSION'],
-                "status": kwargs['status']
+                'message_type': self.m_message_type['CONTROL_SESSION'],
+                'status': kwargs['status']
             }
             response = self.post_wrapper(kwargs['address'], json_payload)
             print(response)
+            if kwargs['status'] != response.data['status']:
+                if self.m_config.m_ai_address == kwargs['address']:
+                    self.start_request('CONTROL_SESSION', address=self.m_config.m_android_address, status=False)
+                else:
+                    self.start_request('CONTROL_SESSION', address=self.m_config.m_ai_address, status=False)
         except:
             pass
 
@@ -86,10 +99,10 @@ class Requestor():
     def handle_fear_event(self, **kwargs):
         try:
             json_payload = {
-                "message_type": self.m_message_type['FEAR_EVENT'],
-                "status_fear": kwargs['status_fear'],
-                "fear_accuracy": kwargs['fear_accuracy'],
-                "timestamp": kwargs['timestamp']
+                'message_type': self.m_message_type['FEAR_EVENT'],
+                'status_fear': kwargs['status_fear'],
+                'fear_accuracy': kwargs['fear_accuracy'],
+                'timestamp': kwargs['timestamp']
             }
             response = self.post_wrapper(kwargs['address'], json_payload)
             print(response)
@@ -100,9 +113,9 @@ class Requestor():
     def handle_program_state(self, **kwargs):
         try:
             json_payload = {
-                "message_type": self.m_message_type['PROGRAM_STATE'],
-                "status": kwargs['status'],
-                "message": kwargs['message']
+                'message_type': self.m_message_type['PROGRAM_STATE'],
+                'status': kwargs['status'],
+                'message': kwargs['message']
             }
             response = self.post_wrapper(kwargs['address'], json_payload)
             print(response)
@@ -113,9 +126,9 @@ class Requestor():
     def handle_biofeedback(self, **kwargs):
         try:
             json_payload = {
-                "message_type": self.m_message_type['BIOFEEDBACK'],
-                "bf": kwargs['biofeedback'],
-                "timestamp": kwargs['timestamp']
+                'message_type': self.m_message_type['BIOFEEDBACK'],
+                'bf': kwargs['biofeedback'],
+                'timestamp': kwargs['timestamp']
             }
             response = self.post_wrapper(kwargs['address'], json_payload)
             print(response)
