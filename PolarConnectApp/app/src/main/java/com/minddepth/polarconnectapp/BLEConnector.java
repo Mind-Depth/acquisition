@@ -78,18 +78,18 @@ public class BLEConnector extends Service {
                     Log.i("MinDepth", "Stopping scan (timeout)");
                     mBluetoothScanner.stopScan(leScanCallback);
                     if (mDevice == null)
-                        mInfos.setStatus(DisplayableInfo.STATUS_DISCO);
+                        mInfos.setState(DisplayableInfo.STATUS_DISCO);
                 }
             }, SCAN_PERIOD);
 
             Log.i("MinDepth", "Scanning");
             mBluetoothScanner.startScan(leScanCallback);
-            mInfos.setStatus(DisplayableInfo.STATUS_SCAN);
+            mInfos.setState(DisplayableInfo.STATUS_SCAN);
         } else {
             Log.i("MinDepth", "Stopping scan");
             mBluetoothScanner.stopScan(leScanCallback);
-            if (mDevice != null)
-                mInfos.setStatus(DisplayableInfo.STATUS_DISCO);
+            if (mDevice == null)
+                mInfos.setState(DisplayableInfo.STATUS_DISCO);
         }
         if (mDevice != null)
             mBluetoothGatt = mDevice.connectGatt(this, false, gattCallback);
@@ -104,8 +104,11 @@ public class BLEConnector extends Service {
                         Log.i("MinDepth", "Connected to GATT server.");
                         Log.i("MinDepth", "Attempting to start service discovery : " + mBluetoothGatt.discoverServices());
 
-                    } else if (newState == BluetoothProfile.STATE_DISCONNECTED)
+                    } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                         Log.i("MinDepth", "Disconnected from GATT server.");
+                        mInfos.setState(DisplayableInfo.STATUS_DISCO);
+                        mInfos.setHeartBeat("???");
+                    }
                 }
 
                 @Override
@@ -116,7 +119,7 @@ public class BLEConnector extends Service {
                                 if (gattCharacteristic.getUuid().equals(UUID_HEART_RATE_MEASUREMENT)) {
                                     Log.i("MinDepth", "Found heart rate characteristic of Polar H10");
                                     if (gatt.setCharacteristicNotification(gattCharacteristic, true))
-                                        mInfos.setStatus(DisplayableInfo.STATUS_POLAR);
+                                        mInfos.setState(DisplayableInfo.STATUS_POLAR);
                                     BluetoothGattDescriptor descriptor = gattCharacteristic.getDescriptors().get(0);
                                     descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
                                     gatt.writeDescriptor(descriptor);
@@ -149,7 +152,6 @@ public class BLEConnector extends Service {
         if (mBluetoothGatt != null) {
             Log.i("MinDepth", "Disconnecting");
             mBluetoothGatt.disconnect();
-            mBluetoothGatt.close();
         }
     }
 

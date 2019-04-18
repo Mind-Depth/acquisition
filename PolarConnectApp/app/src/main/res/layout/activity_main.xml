@@ -25,6 +25,7 @@
             android:inputType="textPersonName"
             android:text="@={info.macAddress}"
             android:textSize="40sp"
+            android:textAlignment="center"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 

@@ -7,11 +7,12 @@ public class DisplayableInfo extends BaseObservable {
     private String heartBeat = "???";
     private String macAddress = "F1:1D:4A:90:FC:BD";
     private String status = "Status : Disconnected";
-    private String ipAddress = "127.0.0.1";
+    private String state = STATUS_DISCO;
+    private String ipAddress = "Unknown";
 
     static final String STATUS_DISCO = "Disconnected";
-    static final String STATUS_SCAN = "Scanning for Polar";
-    static final String STATUS_POLAR = "Connected to Polar";
+    static final String STATUS_SCAN = "Scanning for BLE device";
+    static final String STATUS_POLAR = "Connected to BLE device";
     static final String STATUS_TRANS = "Transmitting";
 
 
@@ -41,8 +42,13 @@ public class DisplayableInfo extends BaseObservable {
     }
 
     public void setStatus(String stat) {
-        status = "Status : " + stat;
+        status = stat;
         notifyPropertyChanged(BR.status);
+    }
+
+    void setState(String newState) {
+        state = newState;
+        setStatus("Status : " + state);
     }
 
     @Bindable
