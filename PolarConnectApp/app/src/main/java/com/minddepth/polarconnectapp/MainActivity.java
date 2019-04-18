@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
 import android.support.annotation.RequiresPermission;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,20 +15,23 @@ import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.ToggleButton;
 
+import com.minddepth.polarconnectapp.Server.PcaHttpServerController;
 import com.minddepth.polarconnectapp.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
 
-    BLEConnector    mConnector;
-    DisplayableInfo infos;
+    private BLEConnector    mConnector;
+    private DisplayableInfo mInfos;
+    private PcaHttpServerController mServerController = new PcaHttpServerController();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        infos = new DisplayableInfo();
-        mConnector = new BLEConnector(this, infos);
+        mInfos = new DisplayableInfo();
+        mConnector = new BLEConnector(this, mInfos);
         if (mConnector.isBluetoothDisabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, 42);
@@ -34,17 +39,18 @@ public class MainActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)!= PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},43);
         } //TODO add gps activation check when launched
-
+        
+        mServerController.startServer();
 
         ActivityMainBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
-        binding.setInfo(infos);
+        binding.setInfo(mInfos);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         mConnector.disconnect();
-        mHttpController.stopServer();
+        mServerController.stopServer();
     }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_ADMIN)
