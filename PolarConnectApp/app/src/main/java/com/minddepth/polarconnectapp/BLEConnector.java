@@ -2,7 +2,6 @@ package com.minddepth.polarconnectapp;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
@@ -20,7 +19,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
-import java.util.List;
 import java.util.UUID;
 
 public class BLEConnector extends Service {
@@ -31,13 +29,14 @@ public class BLEConnector extends Service {
     private Context             mContext;
     private Handler             mHandler;
     
-    private static final String POLAR_MAC_ADDRESS = "F1:1D:4A:90:FC:BD";
     private static final long   SCAN_PERIOD = 10000;
     public final static UUID    UUID_HEART_RATE_MEASUREMENT = UUID.fromString("00002a37-0000-1000-8000-00805f9b34fb");
-    
 
-    BLEConnector(Context context) {
+    private DisplayableInfo     mInfos;
+
+    BLEConnector(Context context, DisplayableInfo infos) {
         mContext = context;
+        mInfos = infos;
 
         final BluetoothManager bluetoothManager =
                 (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
@@ -62,7 +61,7 @@ public class BLEConnector extends Service {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
-            if (result.getDevice().getAddress().equals(POLAR_MAC_ADDRESS)) {
+            if (result.getDevice().getAddress().equals(mInfos.getMacAddress())) {
                 Log.i("MinDepth", "Polar H10 device found");
                 mDevice = result.getDevice();
                 scanBluetoothDevices(false);
@@ -78,14 +77,19 @@ public class BLEConnector extends Service {
                 public void run() {
                     Log.i("MinDepth", "Stopping scan (timeout)");
                     mBluetoothScanner.stopScan(leScanCallback);
+                    if (mDevice == null)
+                        mInfos.setState(DisplayableInfo.STATUS_DISCO);
                 }
             }, SCAN_PERIOD);
 
             Log.i("MinDepth", "Scanning");
             mBluetoothScanner.startScan(leScanCallback);
+            mInfos.setState(DisplayableInfo.STATUS_SCAN);
         } else {
             Log.i("MinDepth", "Stopping scan");
             mBluetoothScanner.stopScan(leScanCallback);
+            if (mDevice == null)
+                mInfos.setState(DisplayableInfo.STATUS_DISCO);
         }
         if (mDevice != null)
             mBluetoothGatt = mDevice.connectGatt(this, false, gattCallback);
@@ -100,8 +104,11 @@ public class BLEConnector extends Service {
                         Log.i("MinDepth", "Connected to GATT server.");
                         Log.i("MinDepth", "Attempting to start service discovery : " + mBluetoothGatt.discoverServices());
 
-                    } else if (newState == BluetoothProfile.STATE_DISCONNECTED)
+                    } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                         Log.i("MinDepth", "Disconnected from GATT server.");
+                        mInfos.setState(DisplayableInfo.STATUS_DISCO);
+                        mInfos.setHeartBeat("???");
+                    }
                 }
 
                 @Override
@@ -111,7 +118,8 @@ public class BLEConnector extends Service {
                             for (BluetoothGattCharacteristic gattCharacteristic : gattService.getCharacteristics()) {
                                 if (gattCharacteristic.getUuid().equals(UUID_HEART_RATE_MEASUREMENT)) {
                                     Log.i("MinDepth", "Found heart rate characteristic of Polar H10");
-                                    gatt.setCharacteristicNotification(gattCharacteristic, true);
+                                    if (gatt.setCharacteristicNotification(gattCharacteristic, true))
+                                        mInfos.setState(DisplayableInfo.STATUS_POLAR);
                                     BluetoothGattDescriptor descriptor = gattCharacteristic.getDescriptors().get(0);
                                     descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
                                     gatt.writeDescriptor(descriptor);
@@ -136,7 +144,7 @@ public class BLEConnector extends Service {
                 format = BluetoothGattCharacteristic.FORMAT_UINT16;
             else
                 format = BluetoothGattCharacteristic.FORMAT_UINT8; //this is the format used by the Polar H10, but keeping the if/else in case we change the device
-            final int heartRate = characteristic.getIntValue(format, 1);
+            mInfos.setHeartBeat(String.valueOf(characteristic.getIntValue(format, 1)));
         }
     }
 
@@ -144,7 +152,6 @@ public class BLEConnector extends Service {
         if (mBluetoothGatt != null) {
             Log.i("MinDepth", "Disconnecting");
             mBluetoothGatt.disconnect();
-            mBluetoothGatt.close();
         }
     }
 
