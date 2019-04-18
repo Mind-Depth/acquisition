@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 
 import urllib.request
+import socket
 
 class Config():
 
     def __init__(self):
 
         self.m_port = "8080"
+        self.m_socket_port = "8090"
 
         self.m_public_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
+        self.m_local_ip = [(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
         print('My public IP is :' + self.m_public_ip)
+        print('My local IP is :' + self.m_local_ip)
 
         self.m_android_address = 'localhost:8081'
         self.m_ai_address = 'localhost:8082'

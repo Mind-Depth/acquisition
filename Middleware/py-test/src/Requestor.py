@@ -22,6 +22,8 @@ class Requestor():
        self.m_config = config
        self.m_message_type = self.init_message_type()
        self.m_handler_dict = self.get_handler_dict()
+       self.m_state_init_android = False
+       self.m_state_init_ai = False
 
     #json_payload => dict object
     def post_wrapper(self, address, json_payload):
@@ -56,27 +58,35 @@ class Requestor():
     #
 
 
-    """handle_init takes route and address as kwargs"""
+    """handle_init takes route, port and address as kwargs"""
     def handle_init(self, **kwargs):
         try:
             json_payload = {
                 'message_type': self.m_message_type['INIT'],
-                'client_ip': self.m_config.m_public_ip,
-                'client_port': self.m_config.m_port,
+                'client_ip': self.m_config.m_local_ip,
+                'client_port': kwargs['port'],
                 'client_rte': kwargs['route']
             }
             response = self.post_wrapper(kwargs['address'], json_payload)
             print(response)
-            if 'program_state' not in response['data']:
-               pass # send control_session 
-            if self.m_config.m_ai_address in response['url']:
-                pass
-                
+            if False in response['data']['status']:
+                if self.m_config.m_ai_address in response['url']:
+                    self.start_request('CONTROL_SESSION', address=self.m_config.m_android_address, status=False)
+                    # TODO dire a chicha que ca marche pas
+                else:
+                    self.start_request('CONTROL_SESSION', address=self.m_config.m_ai_address, status=False)
+                    # TODO dire a chicha que ca marche pas
             else:
-                pass
-                
+                if self.m_config.m_ai_address in response['url']:
+                    self.m_state_init_ai = True
+                else:
+                    self.m_state_init_android = True
+
+                if self.m_state_init_android is True and self.m_state_init_ai is True:
+                    pass
+                    #TODO dire a chicha que les inits sont ok et qu'on est rdy
         except:
-            pass #todo handle post error
+            pass #TODO handle post error
 
     """handle_control_session takes status and address as kwargs"""
     def handle_control_session(self, **kwargs):
@@ -87,11 +97,16 @@ class Requestor():
             }
             response = self.post_wrapper(kwargs['address'], json_payload)
             print(response)
-            if kwargs['status'] != response.data['status']:
+            if response['data']['status']!= True and kwargs['stop'] == False: #TODO check que c'est bien du Pascal case
                 if self.m_config.m_ai_address == kwargs['address']:
-                    self.start_request('CONTROL_SESSION', address=self.m_config.m_android_address, status=False)
+                    self.start_request('CONTROL_SESSION', address=self.m_config.m_android_address, status=False, stop=True)
+                    # TODO notify chicha de l'erreur
                 else:
-                    self.start_request('CONTROL_SESSION', address=self.m_config.m_ai_address, status=False)
+                    self.start_request('CONTROL_SESSION', address=self.m_config.m_ai_address, status=False, stop=True)
+                    # TODO notify chicha de l'erreur
+            else:
+                pass
+                # TODO notify chicha que tout va bien et est running
         except:
             pass
 
