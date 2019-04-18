@@ -3,6 +3,8 @@ package com.minddepth.polarconnectapp;
 import android.databinding.BaseObservable;
 import android.databinding.Bindable;
 
+import java.util.concurrent.ExecutionException;
+
 public class DisplayableInfo extends BaseObservable {
     private String heartBeat = "???";
     private String macAddress = "F1:1D:4A:90:FC:BD";
@@ -15,6 +17,16 @@ public class DisplayableInfo extends BaseObservable {
     static final String STATUS_POLAR = "Connected to BLE device";
     static final String STATUS_TRANS = "Transmitting";
 
+    DisplayableInfo() {
+        NetworkUtils utils = new NetworkUtils();
+        try {
+            ipAddress = utils.execute().get();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Bindable
     public String getHeartBeat() {
