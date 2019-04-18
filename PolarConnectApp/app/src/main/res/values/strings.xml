@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">PolarConnectApp</string>
-    <string name="connectionButton">Connection</string>
-    <string name="discoButton">Deconnection</string>
+    <string name="connectionButton">Connexion</string>
+    <string name="discoButton">Déconnexion</string>
 </resources>
