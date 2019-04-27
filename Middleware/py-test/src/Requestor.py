@@ -124,7 +124,10 @@ class Requestor():
         except:
             pass
 
-    """handle_init takes status, message and address as kwargs"""
+    """
+        handle_init takes status, message and address as kwargs
+        should not be used
+    """
     def handle_program_state(self, **kwargs):
         try:
             json_payload = {
