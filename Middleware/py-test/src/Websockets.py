@@ -2,7 +2,6 @@
 
 import socket
 from Config import Config
-from Middleware import Server
 
 class Websockets:
 
