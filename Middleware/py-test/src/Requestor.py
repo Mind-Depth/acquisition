@@ -3,6 +3,7 @@
 import requests
 import threading
 from Config import Config
+from Websockets import Websockets
 
 class Requestor():
 
@@ -12,7 +13,7 @@ class Requestor():
             'CONTROL_SESSION': self.handle_control_session,
             'FEAR_EVENT': self.handle_fear_event,
             'PROGRAM_STATE': self.handle_program_state,
-            'BIOFEEDBACK': self.handle_biofeedback,
+            'BIOFEEDBACK': self.handle_biofeedback
         }
 
     def init_message_type(self):
@@ -24,6 +25,7 @@ class Requestor():
        self.m_handler_dict = self.get_handler_dict()
        self.m_state_init_android = False
        self.m_state_init_ai = False
+       self.m_websocket_manager = Websockets(self.handle_fear_event)
 
     #json_payload => dict object
     def post_wrapper(self, address, json_payload):
@@ -83,7 +85,13 @@ class Requestor():
                     self.m_state_init_android = True
 
                 if self.m_state_init_android is True and self.m_state_init_ai is True:
-                    pass
+                    try:
+                        self.m_websocket_manager._connect(self.m_config.m_socket_host, self.m_config.m_socket_port)
+                        t = threading.Thread(target=self.m_websocket_manager._read)
+                        t.start()
+                    except:
+                        return {'status': False, "message": "socket connexion failed"}
+                    #TODO etablir les sockets avec ben
                     #TODO dire a chicha que les inits sont ok et qu'on est rdy
         except:
             pass #TODO handle post error
@@ -111,16 +119,10 @@ class Requestor():
             pass
 
     """handle_fear_event takes status_fear, fear_accuracy, timestamp and address as kwargs"""
-    def handle_fear_event(self, **kwargs):
+    def handle_fear_event(self, data):
         try:
-            json_payload = {
-                'message_type': self.m_message_type['FEAR_EVENT'],
-                'status_fear': kwargs['status_fear'],
-                'fear_accuracy': kwargs['fear_accuracy'],
-                'timestamp': kwargs['timestamp']
-            }
-            response = self.post_wrapper(kwargs['address'], json_payload)
-            print(response)
+            pass
+            #TODO balancer la data a chicha ou balancer l'erreur a chicha et alex si besoin
         except:
             pass
 

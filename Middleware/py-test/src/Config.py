@@ -5,10 +5,15 @@ import socket
 
 class Config():
 
-    def __init__(self):
+    def __init__(self, **kwargs):
 
         self.m_port = "8080"
         self.m_socket_port = "8090"
+        self.m_socket_host = "localhost"
+        self.m_debug = True
+        self.m_pipe_name = kwargs['pipe_name']
+        self.m_server_to_client = kwargs['server_to_client']
+        self.m_client_to_server = kwargs['client_to_server']
 
         self.m_public_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
         self.m_local_ip = [(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]

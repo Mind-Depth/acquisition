@@ -98,6 +98,13 @@ class Server():
         # this is web socket handled
         print('in android_biofeedback')
 
+    #
+    # Socket communication
+    #
+
+    
+
+
 def main():
     server = Server()
     server._start()
