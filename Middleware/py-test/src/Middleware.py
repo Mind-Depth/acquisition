@@ -61,9 +61,20 @@ class Server():
             # gérer le cas
 
     def android_program_state(self, payload):
+        try:
+            if payload['status'] != True:
+                # TODO dire a chicha qu'il y a erreur coté android et stop, bien utiliser payload['message']
+                self.m_requestor.start_request('CONTROL_SESSION', status=False, address=self.m_config.m_ai_address)
+        except Exception as e:
+            print(e)
         print('in android_program_state')
 
     def android_biofeedback(self, payload):
+        try:
+            if payload['bf'] != 0:
+                self.m_requestor.start_request('BIOFEEDBACK', biofeedback=payload['bf'], timestamp=payload['timestamp'], address=self.m_config.m_ai_address)
+        except Exception as e:
+            print(e)
         print('in android_biofeedback')
 
 
@@ -80,10 +91,19 @@ class Server():
             # gérer le cas
 
     def ai_program_state(self, payload):
+        # this is web socket handled
         print('in android_biofeedback')
 
     def ai_fear_event(self, payload):
+        # this is web socket handled
         print('in android_biofeedback')
+
+    #
+    # Socket communication
+    #
+
+    
+
 
 def main():
     server = Server()
