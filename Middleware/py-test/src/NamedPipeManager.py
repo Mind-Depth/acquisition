@@ -37,6 +37,3 @@ class NamedPipeManager:
         s = json.dumps(msg)
         win32file.WriteFile(self.m_handle_out, (s + '\r\n').encode())
         print('Send {} : {}'.format(self.m_config.m_pipe_name, s))
-
-manager = NamedPipeManager("test")
-manager.read()
