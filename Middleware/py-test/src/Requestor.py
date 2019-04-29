@@ -4,6 +4,7 @@ import requests
 import threading
 from Config import Config
 from Websockets import Websockets
+from NamedPipeManager import NamedPipeManager
 
 class Requestor():
 
@@ -26,6 +27,7 @@ class Requestor():
        self.m_state_init_android = False
        self.m_state_init_ai = False
        self.m_websocket_manager = Websockets(self.handle_fear_event)
+       s
 
     #json_payload => dict object
     def post_wrapper(self, address, json_payload):

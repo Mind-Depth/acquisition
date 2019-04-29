@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 
-'''
-    On doit recup l'adresse ip locale d'alex en 3eme param et la set dans la classe Config
-    On a des handlers http pour ben et alex dans 2 classes et on passe des callbacks pour gérer les echanges de data
-    On a un thread a part qui parle a chicha en permanence
-'''
-
 import os
+import sys
 import bottle
 from Requestor import Requestor
 from Config import Config
@@ -26,12 +21,12 @@ class Server():
             'PROGRAM_STATE': self.ai_program_state,
         }
 
-    def __init__(self, host='localhost', port=8080):
+    def __init__(self, pipe_name, s_to_c, c_to_s, host='localhost', port=8080):
         self.m_host = host
         self.m_port = port
         self.m_app = bottle.Bottle()
         self.m_requestor = Requestor()
-        self.m_config = Config()
+        self.m_config = Config(pipe_name=pipe_name, server_to_client=s_to_c, client_to_server=c_to_s)
         self.m_ai_message_dict = self.get_ai_message_dict()
         self.m_android_message_dict = self.get_android_message_dict()
         self._route()
@@ -98,15 +93,10 @@ class Server():
         # this is web socket handled
         print('in android_biofeedback')
 
-    #
-    # Socket communication
-    #
-
-    
-
-
 def main():
-    server = Server()
+    if len(sys.argv) < 4:
+        return 1
+    server = Server(sys.argv[1], sys.argv[2], sys.argv[3])
     server._start()
 
 if __name__ == "__main__":
