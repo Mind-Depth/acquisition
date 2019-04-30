@@ -11,6 +11,8 @@ class Config():
         self.m_socket_port = "8090"
         self.m_socket_host = "localhost"
         self.m_debug = True
+        self.m_android_route = '/biofeedback'
+        self.m_ai_route = '/server'
         self.m_pipe_name = kwargs['pipe_name']
         self.m_server_to_client = kwargs['server_to_client']
         self.m_client_to_server = kwargs['client_to_server']

@@ -3,7 +3,6 @@
 import time
 import json
 import win32file
-import win32pipe
 import pywintypes
 from attrdict import AttrDict
 
@@ -24,13 +23,15 @@ class NamedPipeManager:
             else:
                 raise ValueError("Unknown")
 
-    def _read(self):
+    #TODO check que le READ est bien bloquant
+    def _read(self, requestor_callback):
         '''Reads a json object'''
-        error, msg = win32file.ReadFile(self.m_handle_in, 64*1024)
-        assert not error, error
-        s = msg.rstrip(b'\x00').decode()
-        print('Recv {} : {}'.format(self.m_config.m_pipe_name, s))
-        return None if not s else AttrDict(json.loads(s))
+        while True:
+            error, msg = win32file.ReadFile(self.m_handle_in, 64*1024)
+            assert not error, error
+            s = msg.rstrip(b'\x00').decode()
+            print('Recv by namedPipe {} : {}'.format(self.m_config.m_pipe_name, s))
+            requestor_callback(None if not s else AttrDict(json.loads(s)))
 
     def _write(self, msg):
         '''Writes a json object'''

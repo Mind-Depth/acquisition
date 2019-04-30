@@ -6,7 +6,7 @@ import bottle
 from Requestor import Requestor
 from Config import Config
 
-class Server():
+class Middleware():
 
     def get_android_message_dict(self):
         return {
@@ -25,10 +25,11 @@ class Server():
         self.m_host = host
         self.m_port = port
         self.m_app = bottle.Bottle()
-        self.m_requestor = Requestor()
         self.m_config = Config(pipe_name=pipe_name, server_to_client=s_to_c, client_to_server=c_to_s)
+        self.m_requestor = Requestor(self.handler_socket, self.m_config)
         self.m_ai_message_dict = self.get_ai_message_dict()
         self.m_android_message_dict = self.get_android_message_dict()
+        self.m_requestor.start_name_pipe_reader(self.handler_named_pipe)
         self._route()
 
     def _route(self):
@@ -42,7 +43,28 @@ class Server():
         # coder les envoies de requetes + sur le pipe disant qu'on stop le server
         #a trouver mieux
         exit(0)
+
+    #
+    # NAMED PIPE HANDLERS
+    #
+
+    def handler_named_pipe(self, data):
+        if data is None:
+            return
+        if 'INIT' in data:
+            self.m_requestor.start_request('INIT', route=self.m_config.m_android_route, \
+                port=self.m_config.m_port, address=self.m_config.m_android_address)
+            self.m_requestor.start_request('INIT', route=self.m_config.m_ai_route, \
+                 port=self.m_config.m_port, address=self.m_config.m_ai_address)
+        elif 'CONTROL_SESSION' in data:
+            self.m_requestor.start_request('CONTROL_SESSION', stop=False, address=self.m_config.m_android_address, status=data.status)
+            self.m_requestor.start_request('CONTROL_SESSION', stop=False, address=self.m_config.m_ai_address, status=data.status)
         
+    def handler_socket(self, data):
+        if data is None:
+            return
+        if 'BIOFEEDBACK' in data:
+            self.m_requestor.start_request('BIOFFEDBACK', data=data)
     #
     # ANDROID HANDLERS
     #
@@ -58,7 +80,7 @@ class Server():
     def android_program_state(self, payload):
         try:
             if payload['status'] != True:
-                # TODO dire a chicha qu'il y a erreur coté android et stop, bien utiliser payload['message']
+                self.m_requestor.send_error_by_named_pipe(payload['message'])
                 self.m_requestor.start_request('CONTROL_SESSION', status=False, address=self.m_config.m_ai_address)
         except Exception as e:
             print(e)
@@ -96,8 +118,8 @@ class Server():
 def main():
     if len(sys.argv) < 4:
         return 1
-    server = Server(sys.argv[1], sys.argv[2], sys.argv[3])
-    server._start()
+    middleware = Middleware(sys.argv[1], sys.argv[2], sys.argv[3])
+    middleware._start()
 
 if __name__ == "__main__":
     main()

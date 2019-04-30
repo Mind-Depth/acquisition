@@ -2,6 +2,7 @@
 
 import requests
 import threading
+import json
 from Config import Config
 from Websockets import Websockets
 from NamedPipeManager import NamedPipeManager
@@ -20,14 +21,15 @@ class Requestor():
     def init_message_type(self):
         return {'INIT': 'INIT', 'PROGRAM_STATE': 'PROGRAM_STATE', 'FEAR_EVENT': 'FEAR_EVENT', 'BIOFEEDBACK': 'BIOFEEDBACK'}
 
-    def __init__(self, config=Config()):
+    def __init__(self, socket_callback, config=Config()):
        self.m_config = config
+       self.m_socket_callback = socket_callback
        self.m_message_type = self.init_message_type()
        self.m_handler_dict = self.get_handler_dict()
        self.m_state_init_android = False
        self.m_state_init_ai = False
-       self.m_websocket_manager = Websockets(self.handle_fear_event)
-       s
+       self.m_websocket_manager = Websockets()
+       self.m_pipe_manager = NamedPipeManager(self.m_config)
 
     #json_payload => dict object
     def post_wrapper(self, address, json_payload):
@@ -57,10 +59,18 @@ class Requestor():
         t = threading.Thread(target=self.m_handler_dict[message_type], kwargs=kwargs)
         t.start()
         
+
+    def start_name_pipe_reader(self, requestor_callback):
+        t = threading.Thread(target=self.m_pipe_manager._read, args=[requestor_callback])
+        t.start()
+
+    def start_socket_reader(self, socket_callback):
+        t = threading.Thread(target=self.m_websocket_manager._read, args=[socket_callback])
+        t.start()
+
     #
     # Request formating fonction suite
     #
-
 
     """handle_init takes route, port and address as kwargs"""
     def handle_init(self, **kwargs):
@@ -76,10 +86,10 @@ class Requestor():
             if False in response['data']['status']:
                 if self.m_config.m_ai_address in response['url']:
                     self.start_request('CONTROL_SESSION', address=self.m_config.m_android_address, status=False)
-                    # TODO dire a chicha que ca marche pas
+                    self.send_error_by_named_pipe(response['data']['message'])
                 else:
                     self.start_request('CONTROL_SESSION', address=self.m_config.m_ai_address, status=False)
-                    # TODO dire a chicha que ca marche pas
+                    self.send_error_by_named_pipe(response['data']['message'])
             else:
                 if self.m_config.m_ai_address in response['url']:
                     self.m_state_init_ai = True
@@ -93,8 +103,16 @@ class Requestor():
                         t.start()
                     except:
                         return {'status': False, "message": "socket connexion failed"}
-                    #TODO etablir les sockets avec ben
-                    #TODO dire a chicha que les inits sont ok et qu'on est rdy
+
+                    status = self.m_websocket_manager._connect(self.m_config.m_socket_host, self.m_config.m_socket_port)
+                    if status == False:
+                        self.start_request('CONTROL_SESSION', address=self.m_config.m_android_address, status=False)
+                        self.start_request('CONTROL_SESSION', address=self.m_config.m_ai_address, status=False)
+                        self.send_error_by_named_pipe('Cannot establish network connexion with ORE')
+                        return False
+
+                    self.start_socket_reader(self.m_socket_callback)
+                    self.m_pipe_manager._write(json.dumps({'message_type': 'PROGRAM_STATE', 'status': True, 'message': 'Set-up and ready'}))
         except:
             pass #TODO handle post error
 
@@ -110,23 +128,22 @@ class Requestor():
             if response['data']['status']!= True and kwargs['stop'] == False: #TODO check que c'est bien du Pascal case
                 if self.m_config.m_ai_address == kwargs['address']:
                     self.start_request('CONTROL_SESSION', address=self.m_config.m_android_address, status=False, stop=True)
-                    # TODO notify chicha de l'erreur
+                    self.m_pipe_manager._write(json.dumps({'message_type': 'PROGRAM_STATE', 'status': False, 'message': response['data']['message']}))
                 else:
                     self.start_request('CONTROL_SESSION', address=self.m_config.m_ai_address, status=False, stop=True)
-                    # TODO notify chicha de l'erreur
+                    self.m_pipe_manager._write(json.dumps({'message_type': 'PROGRAM_STATE', 'status': False, 'message': response['data']['message']}))
             else:
-                pass
-                # TODO notify chicha que tout va bien et est running
+                #TODO il recoit 2 running en l'etat et c'est nul
+                self.m_pipe_manager._write(json.dumps({'message_type': 'PROGRAM_STATE', 'status': True, 'message': 'Running'}))
         except:
             pass
 
-    """handle_fear_event takes status_fear, fear_accuracy, timestamp and address as kwargs"""
-    def handle_fear_event(self, data):
+    """handle_fear_event takes data """
+    def handle_fear_event(self, **kwargs):
         try:
-            pass
-            #TODO balancer la data a chicha ou balancer l'erreur a chicha et alex si besoin
+            self.m_pipe_manager._write(kwargs['data'])
         except:
-            pass
+            print('error in handle_fear_event')
 
     """
         handle_init takes status, message and address as kwargs
@@ -156,3 +173,6 @@ class Requestor():
             print(response)
         except:
             pass
+
+    def send_error_by_named_pipe(self, message):
+        self.m_pipe_manager._write(json.dumps({'message_type': 'PROGRAM_STATE', 'status': False, 'message': message}))
