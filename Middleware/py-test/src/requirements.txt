@@ -1,0 +1,4 @@
+bottle
+requests
+attrdict
+json
