@@ -1,4 +1,0 @@
-bottle
-requests
-attrdict
-json
