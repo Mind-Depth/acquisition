@@ -21,7 +21,7 @@ class Requestor():
     def init_message_type(self):
         return {'INIT': 'INIT', 'PROGRAM_STATE': 'PROGRAM_STATE', 'FEAR_EVENT': 'FEAR_EVENT', 'BIOFEEDBACK': 'BIOFEEDBACK'}
 
-    def __init__(self, socket_callback, config=Config()):
+    def __init__(self, socket_callback, config):
        self.m_config = config
        self.m_socket_callback = socket_callback
        self.m_message_type = self.init_message_type()
