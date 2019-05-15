@@ -7,7 +7,6 @@ from Utils.OreConstants import AI_PORT, AI_IP
 from AI.FearEngine import FearEngine
 from Handler.OreHttpRequestHandler import OreHTTPRequestHandler, OreCommandType
 from Utils.PacketFactory import PacketFactory
-from OnionRingEngineHTTPSender import OnionRingEngineHTTPSender
 from OnionRingEngineWebSocketServer import OnionRingEngineWebSocketServer
 
 class OnionRingEngineHTTPServer(HTTPServer):
