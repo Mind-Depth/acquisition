@@ -8,6 +8,7 @@ from AI.FearEngine import FearEngine
 from Handler.OreHttpRequestHandler import OreHTTPRequestHandler, OreCommandType
 from Utils.PacketFactory import PacketFactory
 from OnionRingEngineHTTPSender import OnionRingEngineHTTPSender
+from OnionRingEngineWebSocketServer import OnionRingEngineWebSocketServer
 
 class OnionRingEngineHTTPServer(HTTPServer):
     def __init__(self, ip, port, *args, **kwargs):
@@ -15,10 +16,7 @@ class OnionRingEngineHTTPServer(HTTPServer):
         self.m_port = port
         self.m_is_server_ready = False
         self.m_is_server_init = False
-        self.m_client_ip = None
-        self.m_client_port = None
-        self.m_client_rte = None
-
+        self.m_socket_server = OnionRingEngineWebSocketServer(self.m_ip)
         self.m_fear_engine = FearEngine()
         self.m_fear_engine.train_ia()
 
@@ -30,15 +28,19 @@ class OnionRingEngineHTTPServer(HTTPServer):
         self.m_is_server_ready = True
         self.serve_forever()
 
+    def start_websocket_server(self):
+        self.m_socket_server.start_server()
+
+    def stop_websocket_server(self):
+        self.m_socket_server.stop_server()
+
     def on_init_command_received(self, handler, packet):
         if not self.m_is_server_ready:
                 handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'ORE not ready yet'))
         else:
-            self.m_client_ip = packet["client_ip"]
-            self.m_client_port = packet["client_port"]
-            self.m_client_rte = packet["client_rte"]
             self.m_is_server_init = True
-            handler.send_complete_response(200, PacketFactory.get_program_state_json(False, 'ORE is ready'))
+            self.start_websocket_server()
+            handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'ORE is ready'))
 
     def on_start_command_received(self, handler, packet):
         if not self.m_fear_engine.launch():
@@ -50,6 +52,7 @@ class OnionRingEngineHTTPServer(HTTPServer):
         if not self.m_fear_engine.stop():
                 handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'AI already stopped'))
         else:
+            self.stop_websocket_server()
             handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'Stopping Onion Ring Engine AI'))
 
     def on_bio_packet_received(self, handler, packet):
@@ -62,7 +65,7 @@ class OnionRingEngineHTTPServer(HTTPServer):
     ### MARK : FearEngine callbacks
 
     def on_ia_has_predicted(self, status, accuracy, timestamp):
-        OnionRingEngineHTTPSender.post_data_to_endpoint(self.m_client_ip, self.m_client_port, self.m_client_rte, PacketFactory.get_fear_event_json(status, accuracy, timestamp))
+        self.m_socket_server.send_packet_to_client(PacketFactory.get_fear_event_json(status, accuracy, timestamp))
 
     ### MARK : OreHTTPRequestHandler callbacks
 

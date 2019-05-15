@@ -3,7 +3,7 @@
 from io import BytesIO
 from enum import Enum
 from http.server import BaseHTTPRequestHandler
-
+import json
 from Utils.OreEnum import MessageType, OreCommandType
 from Utils.PacketFactory import PacketFactory
 
@@ -19,7 +19,7 @@ class OreHTTPRequestHandler(BaseHTTPRequestHandler):
         try:
             jsonPacket = PacketFactory.get_json_from_packet(body)
             self.packet_parser(jsonPacket)
-        except:
+        except json.decoder.JSONDecodeError:
             print('ERROR: Unable to parse the current Json : ' + str(body))
             self.send_complete_response(400, PacketFactory.get_program_state_json(False, 'Unable to parse the current Json'))
 

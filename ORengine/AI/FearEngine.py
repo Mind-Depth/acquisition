@@ -75,12 +75,12 @@ class FearEngine():
             if self.m_state is FearEngineState.IDLE:
                 print('Start of a new fear segment')
                 self.m_state = FearEngineState.AFRAID
-                callback(result, accuracy, buff[0])
+                callback(result, accuracy, buff[0][1])
         else:
             if self.m_state is FearEngineState.AFRAID:
                 print('End of the current fear segment')
                 self.m_state = FearEngineState.IDLE
-                callback(result, accuracy, buff[self.m_chunck_size - 1])
+                callback(result, accuracy, buff[self.m_chunck_size - 1][1])
 
     def add_bf(self, bf, time, callback):
         if len(self.m_curr_buff) < self.m_chunck_size:
