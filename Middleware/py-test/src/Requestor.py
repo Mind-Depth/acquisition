@@ -12,20 +12,8 @@ import sys
 old_write = sys.stdout.write
 def _write(*args, **kwargs):
     old_write(*args, **kwargs)
-    sys.stdout.flush
+    sys.stdout.flush()
 sys.stdout.write = _write
-
-def _wrap(f):
-    def func(*a, **k):
-        try:
-            print(f'Call {f.__name__}')
-            r = f(*a, **k)
-            print(f'End {f.__name__}')
-            return r
-        except:
-            print(f'Broke {f.__name__}')
-            raise
-    return func
 
 class Requestor():
 
@@ -52,11 +40,8 @@ class Requestor():
        self.m_pipe_manager = NamedPipeManager(self.m_config)
 
     #json_payload => dict object
-    @_wrap
     def post_wrapper(self, address, json_payload):
-        print(address , json_payload)
         r = requests.post(address , json=json_payload)
-        print(r.status_code)
         if r.status_code != 200:
             pass
         return r.json()
@@ -97,20 +82,16 @@ class Requestor():
 
     """handle_init takes route, port and address as kwargs"""
     def handle_init(self, **kwargs):
-        print('handle_init')
         try:
-            print('before payload')
             json_payload = {
                 'message_type': self.m_message_type['INIT'],
                 'client_ip': self.m_config.m_local_ip,
                 'client_port': kwargs['port'],
                 'client_rte': kwargs['route']
             }
-            print('before write')
             response = self.post_wrapper(kwargs['address'], json_payload)
             print(response)
             if False in response['data']['status']:
-                print('in False if')
                 if self.m_config.m_ai_address in response['url']:
                     self.start_request('CONTROL_SESSION', address=self.m_config.m_android_address, status=False)
                     self.send_error_by_named_pipe(response['data']['message'])
@@ -118,14 +99,12 @@ class Requestor():
                     self.start_request('CONTROL_SESSION', address=self.m_config.m_ai_address, status=False)
                     self.send_error_by_named_pipe(response['data']['message'])
             else:
-                print('in False else')
                 if self.m_config.m_ai_address in response['url']:
                     self.m_state_init_ai = True
                 else:
                     self.m_state_init_android = True
 
                 if self.m_state_init_android is True and self.m_state_init_ai is True:
-                    print('socket connection')
                     try:
                         self.m_websocket_manager._connect(self.m_config.m_socket_host, self.m_config.m_socket_port)
                         t = threading.Thread(target=self.m_websocket_manager._read)
@@ -141,10 +120,8 @@ class Requestor():
                         return False
 
                     self.start_socket_reader(self.m_socket_callback)
-                    print('send message')
                     self.m_pipe_manager._write(json.dumps({'message_type': 'PROGRAM_STATE', 'status': True, 'message': 'Set-up and ready'}))
         except:
-            print('ckc handle_init')
             pass #TODO handle post error
 
     """handle_control_session takes status and address as kwargs"""

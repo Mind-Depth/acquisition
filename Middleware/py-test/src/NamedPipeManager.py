@@ -10,20 +10,8 @@ import sys
 old_write = sys.stdout.write
 def _write(*args, **kwargs):
     old_write(*args, **kwargs)
-    sys.stdout.flush
+    sys.stdout.flush()
 sys.stdout.write = _write
-
-def _wrap(f):
-    def func(*a, **k):
-        try:
-            print(f'Call {f.__name__}')
-            r = f(*a, **k)
-            print(f'End {f.__name__}')
-            return r
-        except:
-            print(f'Broke {f.__name__}')
-            raise
-    return func
 
 class NamedPipeManager:
 
@@ -43,13 +31,10 @@ class NamedPipeManager:
                 raise ValueError("Unknown")
 
     #TODO check que le READ est bien bloquant
-    @_wrap
     def _read(self, requestor_callback):
         '''Reads a json object'''
         while True:
-            print('Reading')
             error, msg = win32file.ReadFile(self.m_handle_in, 64*1024)
-            print(error, msg)
             assert not error, error
             s = msg.rstrip(b'\x00').decode()
             print('Recv by namedPipe {} : {}'.format(self.m_config.m_pipe_name, s))
