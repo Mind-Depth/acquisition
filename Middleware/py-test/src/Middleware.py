@@ -6,6 +6,12 @@ import bottle
 from Requestor import Requestor
 from Config import Config
 
+old_write = sys.stdout.write
+def _write(*args, **kwargs):
+    old_write(*args, **kwargs)
+    sys.stdout.flush
+sys.stdout.write = _write
+
 class Middleware():
 
     def get_android_message_dict(self):
@@ -25,19 +31,27 @@ class Middleware():
         self.m_host = host
         self.m_port = port
         self.m_app = bottle.Bottle()
+        self._route()
+        print('Woopsy !')
+        self._start()
+
+        print('Started')
+
         self.m_config = Config(pipe_name=pipe_name, server_to_client=s_to_c, client_to_server=c_to_s)
         self.m_requestor = Requestor(self.handler_socket, self.m_config)
         self.m_ai_message_dict = self.get_ai_message_dict()
         self.m_android_message_dict = self.get_android_message_dict()
         self.m_requestor.start_name_pipe_reader(self.handler_named_pipe)
-        self._route()
+
+        print('End of init')
 
     def _route(self):
         self.m_app.route('/android', method="POST", callback=self.handler_android)
         self.m_app.route('/server', method="POST", callback=self.handler_ai)
 
     def _start(self):
-        self.m_app.run(host=self.m_host, port=self.m_port)
+        import threading
+        threading.Thread(target=lambda: self.m_app.run(host=self.m_host, port=self.m_port)).start()
 
     def _stop(self):
         # coder les envoies de requetes + sur le pipe disant qu'on stop le server
@@ -51,7 +65,9 @@ class Middleware():
     def handler_named_pipe(self, data):
         if data is None:
             return
+        print('test', data)
         if 'INIT' in data:
+            print('INIT')
             self.m_requestor.start_request('INIT', route=self.m_config.m_android_route, \
                 port=self.m_config.m_port, address=self.m_config.m_android_address)
             self.m_requestor.start_request('INIT', route=self.m_config.m_ai_route, \
@@ -116,10 +132,13 @@ class Middleware():
         print('in android_biofeedback')
 
 def main():
+    import sys
     if len(sys.argv) < 4:
         return 1
+    print('start')
     middleware = Middleware(sys.argv[1], sys.argv[2], sys.argv[3])
-    middleware._start()
+    print('init')
+    print('end of main ??')
 
 if __name__ == "__main__":
     main()
