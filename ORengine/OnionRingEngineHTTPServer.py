@@ -35,7 +35,9 @@ class OnionRingEngineHTTPServer(HTTPServer):
 
     def on_init_command_received(self, handler, packet):
         if not self.m_is_server_ready:
-                handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'ORE not ready yet'))
+            handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'ORE not ready yet'))
+        elif self.m_is_server_init:
+            handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'ORE already init'))
         else:
             self.m_is_server_init = True
             self.start_websocket_server()
@@ -43,20 +45,20 @@ class OnionRingEngineHTTPServer(HTTPServer):
 
     def on_start_command_received(self, handler, packet):
         if not self.m_fear_engine.launch():
-                handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'AI already launched'))
+            handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'AI already launched'))
         else:
             handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'Launching Onion Ring Engine AI'))
 
     def on_stop_command_received(self, handler, packet):
         if not self.m_fear_engine.stop():
-                handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'AI already stopped'))
+            handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'AI already stopped'))
         else:
             self.stop_websocket_server()
             handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'Stopping Onion Ring Engine AI'))
 
     def on_bio_packet_received(self, handler, packet):
         if not self.m_fear_engine.m_is_running:
-                handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'Unable to add biofeedback : AI stopped'))
+            handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'Unable to add biofeedback : AI stopped'))
         else:
             self.m_fear_engine.add_bf(packet["bf"], packet["timestamp"], self.on_ia_has_predicted)
             handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'Biofeedback added'))
