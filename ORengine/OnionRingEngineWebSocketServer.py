@@ -42,6 +42,7 @@ class OnionRingEngineWebSocketServer():
             print('Unable to close client connexion : null client socket')
         else:
             self.m_client_socket.close()
+        self.m_thread.join()
 
     def send_packet_to_client(self, message):
         if self.m_client_socket is None:
