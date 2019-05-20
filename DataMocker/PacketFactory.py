@@ -23,7 +23,7 @@ class PacketFactory():
         return json.dumps(fear_event_packet)
 
     @staticmethod
-    def get_biofeedback_json(status, bpm, timestamp):
+    def get_biofeedback_json(bpm, timestamp):
         fear_event_packet = {
             "message_type": MessageType["BIOFEEDBACK"],
             "bf": bpm,

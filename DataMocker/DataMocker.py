@@ -7,6 +7,7 @@ from io import BytesIO
 from http.server import BaseHTTPRequestHandler
 from PacketFactory import PacketFactory
 from EnumUtils import MessageType, MockerCommandType
+from CsvReader import CsvReader
 
 import requests
 
@@ -69,7 +70,8 @@ class DataMockerHttpServer(HTTPServer):
         self.m_ip = ip
         self.m_port = port
         self.m_is_server_init = False
-        
+        self.m_csv_reader = CsvReader(self.on_new_entry_received)
+
         self.m_middleware_ip = None
         self.m_middleware_port = None
         self.m_middleware_rte = None
@@ -92,18 +94,16 @@ class DataMockerHttpServer(HTTPServer):
             handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'DataMocker is ready'))
 
     def on_start_command_received(self, handler, packet):
-        handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'Launching DataMocker'))
-        #if not self.m_fear_engine.launch():
-        #    handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'AI already launched'))
-        #else:
-        #    handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'Launching Onion Ring Engine AI'))
+        if not self.m_csv_reader.start():
+            handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'CsvReader already launched'))
+        else:
+            handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'Launching DataMocker'))
 
     def on_stop_command_received(self, handler, packet):
-        handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'Stopping DataMocker'))
-        #if not self.m_fear_engine.stop():
-        #    handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'AI already stopped'))
-        #else:
-        #    handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'Stopping Onion Ring Engine AI'))
+        if not self.m_csv_reader.stop():
+            handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'CsvReader already stopped'))
+        else:
+            handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'Stopping DataMocker'))
 
     # MARK : CsvReader callbacks
 
