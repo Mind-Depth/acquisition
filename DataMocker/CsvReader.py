@@ -32,7 +32,7 @@ class CsvReader():
     def read_next_point(self):
         if self.m_is_running:
             self.m_callback(self.m_file[self.m_cur_idx], int(time.time()))
-            if self.m_cur_idx < self.m_file_size:
+            if self.m_cur_idx < self.m_file_size - 1:
                 self.m_cur_idx += 1
             else:
                 self.m_cur_idx = 0
