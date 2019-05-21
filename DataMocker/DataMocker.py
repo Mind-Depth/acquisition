@@ -11,6 +11,13 @@ from CsvReader import CsvReader
 
 import requests
 
+import sys
+old_write = sys.stdout.write
+def _write(*args, **kwargs):
+    old_write(*args, **kwargs)
+    sys.stdout.flush()
+sys.stdout.write = _write
+
 class OnionRingEngineHTTPSender():
 
     @staticmethod
@@ -18,7 +25,8 @@ class OnionRingEngineHTTPSender():
         url = 'http://' + ip + ':' + str(port) + rte
         json = data
         try:
-            requests.post(url = url, data = data, timeout=0.0000000001) 
+##            requests.post(url = url, json = data, timeout=0.0000000001) 
+            requests.post(url = url, json = data) 
         except requests.exceptions.ReadTimeout: 
             pass
 
@@ -94,14 +102,14 @@ class DataMockerHttpServer(HTTPServer):
             handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'DataMocker is ready'))
 
     def on_start_command_received(self, handler, packet):
-        if not self.m_csv_reader.start():
-            handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'CsvReader already launched'))
+        if not self.m_csv_reader.start(): # TODO False
+            handler.send_complete_response(400, PacketFactory.get_program_state_json(True, 'CsvReader already launched'))
         else:
             handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'Launching DataMocker'))
 
     def on_stop_command_received(self, handler, packet):
-        if not self.m_csv_reader.stop():
-            handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'CsvReader already stopped'))
+        if not self.m_csv_reader.stop(): # TODO False
+            handler.send_complete_response(400, PacketFactory.get_program_state_json(True, 'CsvReader already stopped'))
         else:
             handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'Stopping DataMocker'))
 

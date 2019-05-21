@@ -42,7 +42,7 @@ class Middleware():
         self._route()
 
     def _route(self):
-        self.m_app.route('/android', method="POST", callback=self.handler_android)
+        self.m_app.route('/biofeedback', method="POST", callback=self.handler_android)
         self.m_app.route('/server', method="POST", callback=self.handler_ai)
 
     def _start(self):
@@ -60,20 +60,21 @@ class Middleware():
     def handler_named_pipe(self, data):
         if data is None:
             return
-        if 'INIT' in data:
+        mtype = data.message_type
+        if data.message_type == 'INIT':
             self.m_requestor.start_request('INIT', route=self.m_config.m_android_route, \
                 port=self.m_config.m_port, address=self.m_config.m_android_address)
             self.m_requestor.start_request('INIT', route=self.m_config.m_ai_route, \
                  port=self.m_config.m_port, address=self.m_config.m_ai_address)
-        elif 'CONTROL_SESSION' in data:
+        elif data.message_type == 'CONTROL_SESSION':
             self.m_requestor.start_request('CONTROL_SESSION', stop=False, address=self.m_config.m_android_address, status=data.status)
             self.m_requestor.start_request('CONTROL_SESSION', stop=False, address=self.m_config.m_ai_address, status=data.status)
         
     def handler_socket(self, data):
-        if data is None:
-            return
-        if 'BIOFEEDBACK' in data:
-            self.m_requestor.start_request('BIOFFEDBACK', data=data)
+##        if data is None:
+##            return
+##        if 'BIOFEEDBACK' in data:
+        self.m_requestor.start_request('FEAR_EVENT', data=data)
     #
     # ANDROID HANDLERS
     #
@@ -83,8 +84,12 @@ class Middleware():
             if 'message_type' in bottle.request.json:
                 self.m_android_message_dict[bottle.request.json['message_type']](bottle.request.json)
         except:
-            print('ERROR IN HANDLER_ANDROID')
-            # gérer le cas
+            import sys
+            import traceback
+            print('handler_android / Sifi faut pas except tout et n\'importe quwa :|')
+            print(''.join(traceback.format_exception(*sys.exc_info())))
+            raise
+##            print('ERROR IN HANDLER_ANDROID')
 
     def android_program_state(self, payload):
         try:
@@ -93,7 +98,6 @@ class Middleware():
                 self.m_requestor.start_request('CONTROL_SESSION', status=False, address=self.m_config.m_ai_address)
         except Exception as e:
             print(e)
-        print('in android_program_state')
 
     def android_biofeedback(self, payload):
         try:
@@ -101,7 +105,6 @@ class Middleware():
                 self.m_requestor.start_request('BIOFEEDBACK', biofeedback=payload['bf'], timestamp=payload['timestamp'], address=self.m_config.m_ai_address)
         except Exception as e:
             print(e)
-        print('in android_biofeedback')
 
 
     #
@@ -118,11 +121,11 @@ class Middleware():
 
     def ai_program_state(self, payload):
         # this is web socket handled
-        print('in android_biofeedback')
+        print('in cc')
 
     def ai_fear_event(self, payload):
         # this is web socket handled
-        print('in android_biofeedback')
+        print('in cc2')
 
 def main():
     if len(sys.argv) < 4:

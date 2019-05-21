@@ -1,7 +1,16 @@
 #!/usr/bin/env python3
 
+import json
+
 import socket
 from Config import Config
+
+import sys
+old_write = sys.stdout.write
+def _write(*args, **kwargs):
+    old_write(*args, **kwargs)
+    sys.stdout.flush()
+sys.stdout.write = _write
 
 class Websockets:
 
@@ -11,12 +20,27 @@ class Websockets:
 
     def _connect(self, host, port):
         try:
-            self.m_s.connect((host, port))
+            print('Le connect', host, int(port))
+            self.m_s.connect((host, int(port)))
         except:
+            import sys
+            import traceback
+            print('Mechant Sifi')
+            print(''.join(traceback.format_exception(*sys.exc_info())))
             print('Cannot establish the socket connection with ORengine')
             return False
         
     def _read(self, requestor_callback):
-        while True:
-            data = self.m_s.recv(self.m_buff_read_size)
-            requestor_callback(data)
+        print('In socket read')
+        try:
+            while True:
+                data = self.m_s.recv(self.m_buff_read_size)
+                print('Web socket: ', data)
+                requestor_callback(json.loads(data.decode()))
+        except:
+            import sys
+            import traceback
+            print('LE READ IL EST KC')
+            print(''.join(traceback.format_exception(*sys.exc_info())))
+            print('Cannot establish the socket connection with ORengine')
+            raise
