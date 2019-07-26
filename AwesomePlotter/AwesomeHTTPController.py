@@ -3,6 +3,8 @@
 from http.server import HTTPServer
 from http.server import BaseHTTPRequestHandler
 import json
+import threading
+from io import BytesIO
 
 from AwesomeHTTPSender import AwesomeHTTPSender
 from Utils.PacketFactory import PacketFactory
@@ -16,6 +18,25 @@ class AwesomeHttpRequestHandler(BaseHTTPRequestHandler):
         }
 
         super().__init__(*args, directory="Harvester/", **kwargs)
+
+    def do_OPTIONS(self):           
+        self.send_response(200)
+        self.send_cors_header()
+        self.end_headers()
+    
+    def send_cors_header(self):
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "*")
+        self.send_header("Access-Control-Allow-Headers", "Accept,Content-Type,Origin")
+
+    def send_complete_response(self, code, content):
+        self.send_response(code)
+        self.send_cors_header()
+        self.send_header('Content-Type', 'application/json')
+        self.end_headers()
+        response = BytesIO()
+        response.write(content.encode())
+        self.wfile.write(response.getvalue())
     
     def do_POST(self):
         content_length = int(self.headers['Content-Length'])
@@ -40,21 +61,26 @@ class AwesomeHttpServer(HTTPServer):
         self.m_android_ip = android_ip
         self.m_android_port = android_port
         self.m_callback = biofeedback_callback
-        self.m_android_app_ready = False
 
         HTTPServer.__init__(self, (self.m_ip, self.m_port), AwesomeHttpRequestHandler)
+        self.server_thread = threading.Thread(target=self.serve_forever)
+        self.server_thread.daemon = True
 
-        AwesomeHTTPSender.post_data_to_endpoint(self.m_android_ip, self.m_android_port, '/', PacketFactory.get_init_json(self.m_ip, self.m_port))
-        self.serve_forever()
+
+    def start(self):
+        self.server_thread.start()
+        AwesomeHTTPSender.post_data_to_endpoint(self.m_android_ip, self.m_android_port, '/', PacketFactory.get_init_json(self.m_ip, self.m_port, "/"), self.on_positive_init_response_received)
+
+    def stop(self):
+        self.shutdown()
+        AwesomeHTTPSender.post_data_to_endpoint(self.m_android_ip, self.m_android_port, '/', PacketFactory.get_control_session_json(False), self.on_positive_control_session_response_received)
+
+    def on_positive_init_response_received(self):
+        print("on_positive_init_response_received")
+        AwesomeHTTPSender.post_data_to_endpoint(self.m_android_ip, self.m_android_port, '/', PacketFactory.get_control_session_json(True), self.on_positive_control_session_response_received)
+
+    def on_positive_control_session_response_received(self):
+        print("on_positive_control_session_response_received")
 
     def on_biofeedback_packet_received(self, packet):
-        print(packet)
-        #self.m_callback(packet["bf"], packet["timestamp"])
-
-    def on_program_state_packet_received(self, packet):
-        if packet["status"] == True:
-            self.m_android_app_ready = True
-            AwesomeHTTPSender.post_data_to_endpoint(self.m_android_ip, self.m_android_port, '/', PacketFactory.get_control_session_json(True))
-
-if __name__ == "__main__":
-    AwesomeHttpServer('localhost', 4242, '10.15.194.86', 8080, None)
+        self.m_callback(packet["bf"], packet["timestamp"])

@@ -4,11 +4,12 @@ import json
 class PacketFactory():
 
     @staticmethod
-    def get_init_json(ip, port):
+    def get_init_json(ip, port, rte):
         program_state_packet = {
             "message_type": MessageType["INIT"],
             "client_ip": ip,
-            "client_port": port
+            "client_port": port,
+            "client_rte": rte
         }
         return json.dumps(program_state_packet)
 

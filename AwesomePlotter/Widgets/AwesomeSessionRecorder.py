@@ -8,6 +8,7 @@ from PyQt5 import QtGui
 from Widgets.WidgetRecorderPlotter import WidgetRecorderPlotter
 from Widgets.ErrorDialog import ErrorDialog
 from Controllers.SessionRecorderController import SessionRecorderController
+from AwesomeHTTPController import AwesomeHttpServer
 
 class AwsRecorderState(Enum):
     IDLE = 0
@@ -19,6 +20,7 @@ class AwesomeSessionRecorder(QWidget):
         super().__init__()
         print("Opening AWSSR...")
         self.state = AwsRecorderState.IDLE
+        self.httpController = AwesomeHttpServer('localhost', 4242, '172.20.10.12', 8080, self.onBiofeedbackReceived)
         self.initUI()
 
     def initUI(self):
@@ -92,6 +94,7 @@ class AwesomeSessionRecorder(QWidget):
             print('Starting record...')
             ErrorDialog(self, 'Warning : The BLE module is curently disconnected')
             self.state = AwsRecorderState.RECORDING
+            self.httpController.start()
             self.graph.startRecording()
     
     def stopRecord(self):
@@ -99,6 +102,7 @@ class AwesomeSessionRecorder(QWidget):
             print('Stoping record...')
             self.playButton.setChecked(False)
             self.state = AwsRecorderState.READY
+            self.httpController.stop()
             self.graph.stopRecording()
 
     def clearRecord(self):
@@ -109,3 +113,6 @@ class AwesomeSessionRecorder(QWidget):
             self.sessionRecorder.saveData()
             self.graph.clearRecording()
             self.sessionRecorder.flushData()
+
+    def onBiofeedbackReceived(self, bf, timestamp):
+        print("bf {}  timestamp {}".format(bf,  timestamp))
