@@ -14,10 +14,12 @@ class AwesomeHttpRequestHandler(BaseHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         self.request_callbacks = {
             "PROGRAM_STATE": self.on_program_state_packet_received,
-            "BIOFEEDBACK": self.onHReqReceived
+            "BIOFEEDBACK": self.on_biofeedback_packet_received
         }
 
-        super().__init__(*args, directory="Harvester/", **kwargs)
+        super().__init__(*args, 
+        #directory="Harvester/",
+        **kwargs)
 
     def do_OPTIONS(self):           
         self.send_response(200)
@@ -53,6 +55,7 @@ class AwesomeHttpRequestHandler(BaseHTTPRequestHandler):
 
     def on_biofeedback_packet_received(self, packet):
         self.server.on_biofeedback_packet_received(packet)
+        self.send_complete_response(200, PacketFactory.get_program_state_json(True, "Biofeedback received"))
 
 class AwesomeHttpServer(HTTPServer):
     def __init__(self, ip, port, android_ip, android_port, biofeedback_callback):
@@ -75,6 +78,7 @@ class AwesomeHttpServer(HTTPServer):
     def stop(self):
         print("Stopping server on {}:{}".format(self.m_ip, self.m_port))
         self.shutdown()
+        self.server_thread.join()
         AwesomeHTTPSender.post_data_to_endpoint(self.m_android_ip, self.m_android_port, '/', PacketFactory.get_control_session_json(False), self.on_positive_control_session_response_received)
 
     def on_positive_init_response_received(self):

@@ -2,3 +2,4 @@ __pycache__/
 mind-depth
 .DS_Store
 .vscode/
+PolarConnectApp/.idea/

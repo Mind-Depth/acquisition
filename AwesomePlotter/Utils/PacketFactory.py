@@ -12,6 +12,15 @@ class PacketFactory():
             "client_rte": rte
         }
         return json.dumps(program_state_packet)
+        
+    @staticmethod
+    def get_program_state_json(status, message):
+        program_state_packet = {
+            "message_type": MessageType["PROGRAM_STATE"],
+            "status": status,
+            "message": message
+        }
+        return json.dumps(program_state_packet)
 
     @staticmethod
     def get_control_session_json(status):

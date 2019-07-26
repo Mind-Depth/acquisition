@@ -38,14 +38,6 @@ public class PcaHttpServerController implements IPcaPacketHandler {
         mServer.stop();
     }
 
-    public void sendBiofeedbackToClient(BiofeedbackPacket packet) {
-        if (mState ==  PcaHttpServerControllerState.STARTED) {
-            mSender.sendPacket(packet);
-        } else {
-            Log.e(TAG, "Unable to send biofeedback data to client : Server is not started");
-        }
-    }
-
     private void initClientInfo(String ip, int port, String route) {
         mClientIp = ip;
         mClientPort = port;
@@ -60,7 +52,7 @@ public class PcaHttpServerController implements IPcaPacketHandler {
             initClientInfo(packet.client_ip, packet.client_port, packet.client_rte);
             mSender.initEndpoint(mClientIp, mClientPort, mClientRoute);
             mState = PcaHttpServerControllerState.INIT;
-            mServer.sendPendingResponse(200, "Pca successfully init ");
+            mServer.sendPendingResponse(200, "Pca successfully init");
             Log.d(TAG, "Initialization with the following values : "  + mClientIp + ":" + mClientPort + mClientRoute);
         } else {
             mServer.sendPendingResponse(400, "Pca already init or launched");
@@ -74,9 +66,6 @@ public class PcaHttpServerController implements IPcaPacketHandler {
             mState = PcaHttpServerControllerState.STARTED;
             mServer.sendPendingResponse(200, "Pca successfully started");
             Log.d(TAG, "Launching Pca broadcasting...");
-
-
-            sendBiofeedbackToClient(new BiofeedbackPacket(55, 123456789));
         } else if (mState == PcaHttpServerControllerState.STARTED && !packet.status) {
             mState = PcaHttpServerControllerState.INIT;
             mServer.sendPendingResponse(200, "Pca successfully stopped");
@@ -84,6 +73,15 @@ public class PcaHttpServerController implements IPcaPacketHandler {
         } else {
             mServer.sendPendingResponse(400, "Pca not init or started");
             Log.e(TAG, "Pca not init or started");
+        }
+    }
+
+    @Override
+    public void onNewBiofeedbackReceived(BiofeedbackPacket packet) { //simply send the biofeedback packet
+        if (mState ==  PcaHttpServerControllerState.STARTED) {
+            mSender.sendPacket(packet);
+        } else {
+            Log.e(TAG, "Unable to send biofeedback data to client : Server is not started");
         }
     }
 }

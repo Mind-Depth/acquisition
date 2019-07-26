@@ -21,6 +21,9 @@ class WidgetRecorderPlotter(QWidget):
     def logEvent(self):
         self.canvas.plotPoint(self.canvas.ax2, [0])
 
+    def logBiofeedback(self, bf):
+        self.canvas.plotPoint(self.canvas.ax, bf)
+
     def startRecording(self):
         if self.firstLaunch:
             self.canvas.startTimer()

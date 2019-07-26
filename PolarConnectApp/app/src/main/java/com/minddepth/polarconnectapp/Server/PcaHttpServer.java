@@ -30,7 +30,7 @@ public class PcaHttpServer {
         public void onRequest(AsyncHttpServerRequest request, AsyncHttpServerResponse response) {
             AsyncHttpRequestBody requestBody = request.getBody();
             try {
-                String packet = new JSONObject(requestBody.get().toString()).getString("body");
+                String packet = new JSONObject(requestBody.get().toString()).toString();
                 Log.d(TAG, "New post request received with the following content : " + packet);
                 Object parsedPacket = mPacketHandler.parsePacket(packet);
                 if (parsedPacket == null) {
@@ -47,7 +47,7 @@ public class PcaHttpServer {
                     }
                 }
                 response.code(200).send(packet);
-            } catch (JSONException e) {
+            } catch (Exception e) {
                 Log.e(TAG, e.getMessage());
             }
         }
