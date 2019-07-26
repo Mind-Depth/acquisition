@@ -68,10 +68,12 @@ class AwesomeHttpServer(HTTPServer):
 
 
     def start(self):
+        print("Starting server on {}:{}".format(self.m_ip, self.m_port))
         self.server_thread.start()
         AwesomeHTTPSender.post_data_to_endpoint(self.m_android_ip, self.m_android_port, '/', PacketFactory.get_init_json(self.m_ip, self.m_port, "/"), self.on_positive_init_response_received)
 
     def stop(self):
+        print("Stopping server on {}:{}".format(self.m_ip, self.m_port))
         self.shutdown()
         AwesomeHTTPSender.post_data_to_endpoint(self.m_android_ip, self.m_android_port, '/', PacketFactory.get_control_session_json(False), self.on_positive_control_session_response_received)
 
