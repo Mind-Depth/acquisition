@@ -7,6 +7,6 @@ class AwesomeHTTPSender():
         url = 'http://' + ip + ':' + str(port) + rte
         json = data
         try:
-            requests.post(url = url, data = data, timeout=0.0000000001) 
+            requests.post(url = url, data = data, timeout=None) 
         except requests.exceptions.ReadTimeout: 
             pass

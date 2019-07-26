@@ -1,13 +1,14 @@
-from EnumUtils import MessageType
+from Utils.EnumUtils import MessageType
 import json
 
 class PacketFactory():
 
     @staticmethod
-    def get_init_json(status):
+    def get_init_json(ip, port):
         program_state_packet = {
             "message_type": MessageType["INIT"],
-            "status": status,
+            "client_ip": ip,
+            "client_port": port
         }
         return json.dumps(program_state_packet)
 
