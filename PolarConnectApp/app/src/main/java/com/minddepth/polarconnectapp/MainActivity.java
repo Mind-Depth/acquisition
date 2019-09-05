@@ -24,14 +24,13 @@ public class MainActivity extends AppCompatActivity {
     private DisplayableInfo mInfos;
     private PcaHttpServerController mServerController = new PcaHttpServerController();
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         mInfos = new DisplayableInfo();
-        mConnector = new BLEConnector(this, mInfos);
+        mConnector = new BLEConnector(this, mInfos, mServerController);
         if (mConnector.isBluetoothDisabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, 42);

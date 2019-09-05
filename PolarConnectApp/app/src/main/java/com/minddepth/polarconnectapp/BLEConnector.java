@@ -19,6 +19,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.minddepth.polarconnectapp.Interfaces.IPcaPacketHandler;
+import com.minddepth.polarconnectapp.Models.BiofeedbackPacket;
+
 import java.util.UUID;
 
 public class BLEConnector extends Service {
@@ -28,15 +31,17 @@ public class BLEConnector extends Service {
     private BluetoothGatt       mBluetoothGatt;
     private Context             mContext;
     private Handler             mHandler;
+    private IPcaPacketHandler   mPcaHandler;
     
     private static final long   SCAN_PERIOD = 10000;
     public final static UUID    UUID_HEART_RATE_MEASUREMENT = UUID.fromString("00002a37-0000-1000-8000-00805f9b34fb");
 
     private DisplayableInfo     mInfos;
 
-    BLEConnector(Context context, DisplayableInfo infos) {
+    BLEConnector(Context context, DisplayableInfo infos, IPcaPacketHandler pcaPacketHandler) {
         mContext = context;
         mInfos = infos;
+        mPcaHandler = pcaPacketHandler;
 
         final BluetoothManager bluetoothManager =
                 (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
@@ -145,6 +150,7 @@ public class BLEConnector extends Service {
             else
                 format = BluetoothGattCharacteristic.FORMAT_UINT8; //this is the format used by the Polar H10, but keeping the if/else in case we change the device
             mInfos.setHeartBeat(String.valueOf(characteristic.getIntValue(format, 1)));
+            mPcaHandler.onNewBiofeedbackReceived(new BiofeedbackPacket(characteristic.getIntValue(format, 1), System.currentTimeMillis()));
         }
     }
 

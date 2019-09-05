@@ -10,4 +10,3 @@ requests
 bottle
 requests
 attrdict
-json

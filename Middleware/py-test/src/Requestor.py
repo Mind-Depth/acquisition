@@ -55,7 +55,8 @@ class Requestor():
             print('broke', address, json_payload)
             print(''.join(traceback.format_exception(*sys.exc_info())))
             raise
-        assert r.status_code == 200, r
+        print(r, r.content)
+        assert r.status_code == 200, (r, r.content)
         if r.status_code != 200:
             pass
         return r.json()

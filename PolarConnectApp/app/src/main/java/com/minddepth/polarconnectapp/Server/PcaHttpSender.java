@@ -31,6 +31,7 @@ public class PcaHttpSender {
                     conn.setReadTimeout(1);
                     conn.setDoOutput(true);
                     conn.setDoInput(false);
+                    //conn.setReadTimeout(2000);
 
                     DataOutputStream os = new DataOutputStream(conn.getOutputStream());
                     os.writeBytes(bfp.toJson());
