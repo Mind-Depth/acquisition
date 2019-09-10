@@ -7,6 +7,9 @@ import com.minddepth.polarconnectapp.Models.BiofeedbackPacket;
 import com.minddepth.polarconnectapp.Models.ControlSessionPacket;
 import com.minddepth.polarconnectapp.Models.InitPacket;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class PcaHttpServerController implements IPcaPacketHandler {
     private enum PcaHttpServerControllerState {
         IDLE,
@@ -47,31 +50,31 @@ public class PcaHttpServerController implements IPcaPacketHandler {
     // IPcaPacketHandler methods
 
     @Override
-    public void onInitPacketReceived(InitPacket packet) {
+    public void onInitPacketReceived(InitPacket packet) throws JSONException {
         if (mState == PcaHttpServerControllerState.IDLE)  {
             initClientInfo(packet.client_ip, packet.client_port, packet.client_rte);
             mSender.initEndpoint(mClientIp, mClientPort, mClientRoute);
             mState = PcaHttpServerControllerState.INIT;
-            mServer.sendPendingResponse(200, "Pca successfully init");
+            mServer.sendPendingResponse(200, new JSONObject("{\"message_type\": \"PROGRAM_STATE\", \"status\": false, \"message\": \"Pca successfully init\"}"));
             Log.d(TAG, "Initialization with the following values : "  + mClientIp + ":" + mClientPort + mClientRoute);
         } else {
-            mServer.sendPendingResponse(400, "Pca already init or launched");
+            mServer.sendPendingResponse(400, new JSONObject("{\"message_type\": \"PROGRAM_STATE\", \"status\": false, \"message\": \"Pca already init or launched\"}"));
             Log.e(TAG, "Pca already init or launched");
         }
     }
 
     @Override
-    public void onControlSessionPacketReceived(ControlSessionPacket packet) {
+    public void onControlSessionPacketReceived(ControlSessionPacket packet) throws JSONException {
         if (mState == PcaHttpServerControllerState.INIT && packet.status) {
             mState = PcaHttpServerControllerState.STARTED;
-            mServer.sendPendingResponse(200, "Pca successfully started");
+            mServer.sendPendingResponse(200, new JSONObject("{\"message_type\": \"PROGRAM_STATE\", \"status\": false, \"message\": \"Pca successfully started\"}"));
             Log.d(TAG, "Launching Pca broadcasting...");
         } else if (mState == PcaHttpServerControllerState.STARTED && !packet.status) {
             mState = PcaHttpServerControllerState.INIT;
-            mServer.sendPendingResponse(200, "Pca successfully stopped");
+            mServer.sendPendingResponse(200, new JSONObject("{\"message_type\": \"PROGRAM_STATE\", \"status\": false, \"message\": \"Pca successfully stopped\"}"));
             Log.d(TAG, "Stopping Pca broadcasting...");
         } else {
-            mServer.sendPendingResponse(400, "Pca not init or started");
+            mServer.sendPendingResponse(400, new JSONObject("{\"message_type\": \"PROGRAM_STATE\", \"status\": false, \"message\": \"Pca not init or started\"}"));
             Log.e(TAG, "Pca not init or started");
         }
     }
