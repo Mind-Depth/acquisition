@@ -74,6 +74,7 @@ class Requestor():
 
     """handle_init takes route, port and address as kwargs"""
     def handle_init(self, **kwargs):
+        print('handle_init before try')
         try:
             json_payload = {
                 'message_type': self.m_message_type['INIT'],
@@ -82,7 +83,7 @@ class Requestor():
                 'client_rte': kwargs['route']
             }
             response = self.post_wrapper(kwargs['address'], json_payload)
-            print(response)
+            print('handle_init response:', response)
             if False in response['data']['status']:
                 if self.m_config.m_ai_address in response['url']:
                     self.start_request('CONTROL_SESSION', address=self.m_config.m_android_address, status=False)
@@ -110,10 +111,12 @@ class Requestor():
                         self.start_request('CONTROL_SESSION', address=self.m_config.m_ai_address, status=False)
                         self.send_error_by_named_pipe('Cannot establish network connexion with ORE')
                         return False
-
+                    print('Starting socket')
                     self.start_socket_reader(self.m_socket_callback)
+                    print('Socket started')
                     self.m_pipe_manager._write(json.dumps({'message_type': 'PROGRAM_STATE', 'status': True, 'message': 'Set-up and ready'}))
-        except:
+        except Exception as e:
+            print('handle_init exception', e)
             pass #TODO handle post error
 
     """handle_control_session takes status and address as kwargs"""
@@ -124,7 +127,7 @@ class Requestor():
                 'status': kwargs['status']
             }
             response = self.post_wrapper(kwargs['address'], json_payload)
-            print(response)
+            print('handle_control_session response:', response)
             if response['data']['status']!= True and kwargs['stop'] == False: #TODO check que c'est bien du Pascal case
                 if self.m_config.m_ai_address == kwargs['address']:
                     self.start_request('CONTROL_SESSION', address=self.m_config.m_android_address, status=False, stop=True)
@@ -136,6 +139,7 @@ class Requestor():
                 #TODO il recoit 2 running en l'etat et c'est nul
                 self.m_pipe_manager._write(json.dumps({'message_type': 'PROGRAM_STATE', 'status': True, 'message': 'Running'}))
         except:
+            print('handle_control_session', e)
             pass
 
     """handle_fear_event takes data """
@@ -159,6 +163,7 @@ class Requestor():
             response = self.post_wrapper(kwargs['address'], json_payload)
             print(response)
         except:
+            print('handle_program_state', e)
             pass
 
     """handle_init takes biofeedback, timestamp and address as kwargs"""
@@ -172,6 +177,7 @@ class Requestor():
             response = self.post_wrapper(kwargs['address'], json_payload)
             print(response)
         except:
+            print('handle_biofeedback', e)
             pass
 
     def send_error_by_named_pipe(self, message):
