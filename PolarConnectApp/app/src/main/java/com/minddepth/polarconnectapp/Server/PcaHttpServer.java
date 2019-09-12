@@ -67,7 +67,7 @@ public class PcaHttpServer {
         mAsyncServer.stop();
     }
 
-    public void sendPendingResponse(int code, String message) {
+    public void sendPendingResponse(int code, JSONObject message) {
         mPendingResponse.code(code).send(message);
         mPendingResponse = null;
     }
