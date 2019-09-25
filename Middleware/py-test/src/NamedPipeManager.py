@@ -2,8 +2,8 @@
 
 import time
 import json
-import win32file
-import pywintypes
+#import win32file
+#import pywintypes
 from attrdict import AttrDict
 import sys
 

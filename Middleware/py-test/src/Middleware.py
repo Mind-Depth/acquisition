@@ -38,7 +38,7 @@ class Middleware():
         self.m_ai_message_dict = self.get_ai_message_dict()
         self.m_android_message_dict = self.get_android_message_dict()
 
-        self.m_requestor.start_name_pipe_reader(self.handler_named_pipe)
+        # self.m_requestor.start_name_pipe_reader(self.handler_named_pipe)
         self._route()
 
     def _route(self):
@@ -47,6 +47,12 @@ class Middleware():
 
     def _start(self):
         self.m_app.run(host=self.m_host, port=self.m_port)
+
+        # DEBUG
+        data = {}
+        data['message_type'] = 'INIT'
+
+        self.handler_named_pipe(data)
 
     def _stop(self):
         # coder les envoies de requetes + sur le pipe disant qu'on stop le server
@@ -60,13 +66,13 @@ class Middleware():
     def handler_named_pipe(self, data):
         if data is None:
             return
-        mtype = data.message_type
-        if data.message_type == 'INIT':
+        if data['message_type'] == 'INIT':
+            print('STARTING INIT')
             self.m_requestor.start_request('INIT', route=self.m_config.m_android_route, \
                 port=self.m_config.m_port, address=self.m_config.m_android_address)
             self.m_requestor.start_request('INIT', route=self.m_config.m_ai_route, \
                  port=self.m_config.m_port, address=self.m_config.m_ai_address)
-        elif data.message_type == 'CONTROL_SESSION':
+        elif data['message_type'] == 'CONTROL_SESSION':
             self.m_requestor.start_request('CONTROL_SESSION', stop=False, address=self.m_config.m_android_address, status=data.status)
             self.m_requestor.start_request('CONTROL_SESSION', stop=False, address=self.m_config.m_ai_address, status=data.status)
         
@@ -129,6 +135,7 @@ class Middleware():
 
 def main():
     if len(sys.argv) < 4:
+        print('Si usage sans chicha, tu peux mettre 3 args de merde, osef')
         return 1
     middleware = Middleware(sys.argv[1], sys.argv[2], sys.argv[3])
     middleware._start()
