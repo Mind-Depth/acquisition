@@ -25,7 +25,7 @@ class Websockets:
         except:
             import sys
             import traceback
-            print('Mechant Sifi')
+            print('Mechant Sifi Webocket.py')
             print(''.join(traceback.format_exception(*sys.exc_info())))
             print('Cannot establish the socket connection with ORengine')
             return False

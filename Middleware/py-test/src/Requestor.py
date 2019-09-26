@@ -130,14 +130,14 @@ class Requestor():
                     print('State are True')
                     try:
                         status = self.m_websocket_manager._connect(self.m_config.m_socket_host, self.m_config.m_socket_port)
-##                        t = threading.Thread(target=self.m_websocket_manager._read)
-##                        t.start()
+                        t = threading.Thread(target=self.m_websocket_manager._read)
+                        t.start()
                     except:
                         print('Except')
                         return {'status': False, "message": "socket connexion failed"}
 
                     print('Connect', self.m_config.m_socket_host, self.m_config.m_socket_port)
-##                    status = self.m_websocket_manager._connect(self.m_config.m_socket_host, self.m_config.m_socket_port)
+#                    status = self.m_websocket_manager._connect(self.m_config.m_socket_host, self.m_config.m_socket_port)
                     if status == False:
                         print('Status False')
                         self.start_request('CONTROL_SESSION', address=self.m_config.m_android_address, status=False)
@@ -152,7 +152,7 @@ class Requestor():
         except:
             import sys
             import traceback
-            print('Mechant Sifi')
+            print('Mechant Sifi Requestor.py')
             print(''.join(traceback.format_exception(*sys.exc_info())))
             pass #TODO handle post error
 

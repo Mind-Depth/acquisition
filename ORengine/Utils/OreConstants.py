@@ -6,7 +6,7 @@ AI_PORT = 4242
 import random
 import os
 
-port_path = r'D:\EIP\acquisition\ORengine\Utils\port.txt'
+port_path = r'Utils\port.txt'
 if os.path.isfile(port_path):
 
     with open(port_path, 'r') as f:
