@@ -2,9 +2,16 @@
 
 import time
 import json
-import win32file
-import pywintypes
+#import win32file
+#import pywintypes
 from attrdict import AttrDict
+import sys
+
+old_write = sys.stdout.write
+def _write(*args, **kwargs):
+    old_write(*args, **kwargs)
+    sys.stdout.flush()
+sys.stdout.write = _write
 
 class NamedPipeManager:
 

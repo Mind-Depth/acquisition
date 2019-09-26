@@ -36,7 +36,8 @@ class CsvReader():
                 self.m_cur_idx += 1
             else:
                 self.m_cur_idx = 0
-            threading.Timer(1, self.read_next_point).start()
+##            threading.Timer(1, self.read_next_point).start()
+            threading.Timer(0.1, self.read_next_point).start()
             
 
     def loadCsv(self, filepath):

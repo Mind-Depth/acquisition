@@ -7,6 +7,16 @@ from Config import Config
 from Websockets import Websockets
 from NamedPipeManager import NamedPipeManager
 
+import sys
+
+old_write = sys.stdout.write
+def _write(*args, **kwargs):
+    old_write(*args, **kwargs)
+    sys.stdout.flush()
+sys.stdout.write = _write
+
+import traceback
+
 class Requestor():
 
     def get_handler_dict(self):
@@ -19,7 +29,13 @@ class Requestor():
         }
 
     def init_message_type(self):
-        return {'INIT': 'INIT', 'PROGRAM_STATE': 'PROGRAM_STATE', 'FEAR_EVENT': 'FEAR_EVENT', 'BIOFEEDBACK': 'BIOFEEDBACK'}
+        return {
+            'INIT': 'INIT',
+            'PROGRAM_STATE': 'PROGRAM_STATE',
+            'CONTROL_SESSION': 'CONTROL_SESSION',
+            'FEAR_EVENT': 'FEAR_EVENT',
+            'BIOFEEDBACK': 'BIOFEEDBACK'
+        }
 
     def __init__(self, socket_callback, config):
        self.m_config = config
@@ -29,11 +45,18 @@ class Requestor():
        self.m_state_init_android = False
        self.m_state_init_ai = False
        self.m_websocket_manager = Websockets()
-       self.m_pipe_manager = NamedPipeManager(self.m_config)
+    #    self.m_pipe_manager = NamedPipeManager(self.m_config)
 
     #json_payload => dict object
     def post_wrapper(self, address, json_payload):
-        r = requests.post(address , json=json_payload)
+        try:
+            r = requests.post(address , json=json_payload)
+        except:
+            print('broke', address, json_payload)
+            print(''.join(traceback.format_exception(*sys.exc_info())))
+            raise
+        print(r, r.content)
+        assert r.status_code == 200, (r, r.content)
         if r.status_code != 200:
             pass
         return r.json()
@@ -60,9 +83,9 @@ class Requestor():
         t.start()
         
 
-    def start_name_pipe_reader(self, requestor_callback):
-        t = threading.Thread(target=self.m_pipe_manager._read, args=[requestor_callback])
-        t.start()
+    # def start_name_pipe_reader(self, requestor_callback):
+    #     t = threading.Thread(target=self.m_pipe_manager._read, args=[requestor_callback])
+    #     t.start()
 
     def start_socket_reader(self, socket_callback):
         t = threading.Thread(target=self.m_websocket_manager._read, args=[socket_callback])
@@ -74,7 +97,7 @@ class Requestor():
 
     """handle_init takes route, port and address as kwargs"""
     def handle_init(self, **kwargs):
-        print('handle_init before try')
+        print('IN HANDLE INIT')
         try:
             json_payload = {
                 'message_type': self.m_message_type['INIT'],
@@ -82,68 +105,87 @@ class Requestor():
                 'client_port': kwargs['port'],
                 'client_rte': kwargs['route']
             }
+            print('INIT PAYLOAD:')
+            print(json_payload)
             response = self.post_wrapper(kwargs['address'], json_payload)
-            print('handle_init response:', response)
-            if False in response['data']['status']:
-                if self.m_config.m_ai_address in response['url']:
+            print('Response', response)
+            if response['status'] is False:
+##                if self.m_config.m_ai_address in response['url']:
+                if kwargs['address'] == 'http://localhost:4242':
                     self.start_request('CONTROL_SESSION', address=self.m_config.m_android_address, status=False)
-                    self.send_error_by_named_pipe(response['data']['message'])
+                    # self.send_error_by_named_pipe(response['data']['message'])
                 else:
                     self.start_request('CONTROL_SESSION', address=self.m_config.m_ai_address, status=False)
-                    self.send_error_by_named_pipe(response['data']['message'])
+                    # self.send_error_by_named_pipe(response['data']['message'])
             else:
-                if self.m_config.m_ai_address in response['url']:
+##                if self.m_config.m_ai_address in response['url']:
+                if kwargs['address'] == 'http://localhost:4242':
+                    print('AI Ready')
                     self.m_state_init_ai = True
                 else:
+                    print('Android Ready')
                     self.m_state_init_android = True
 
                 if self.m_state_init_android is True and self.m_state_init_ai is True:
+                    print('State are True')
                     try:
-                        self.m_websocket_manager._connect(self.m_config.m_socket_host, self.m_config.m_socket_port)
+                        status = self.m_websocket_manager._connect(self.m_config.m_socket_host, self.m_config.m_socket_port)
                         t = threading.Thread(target=self.m_websocket_manager._read)
                         t.start()
                     except:
+                        print('Except')
                         return {'status': False, "message": "socket connexion failed"}
 
-                    status = self.m_websocket_manager._connect(self.m_config.m_socket_host, self.m_config.m_socket_port)
+                    print('Connect', self.m_config.m_socket_host, self.m_config.m_socket_port)
+#                    status = self.m_websocket_manager._connect(self.m_config.m_socket_host, self.m_config.m_socket_port)
                     if status == False:
+                        print('Status False')
                         self.start_request('CONTROL_SESSION', address=self.m_config.m_android_address, status=False)
                         self.start_request('CONTROL_SESSION', address=self.m_config.m_ai_address, status=False)
-                        self.send_error_by_named_pipe('Cannot establish network connexion with ORE')
+                        # self.send_error_by_named_pipe('Cannot establish network connexion with ORE')
                         return False
-                    print('Starting socket')
+
                     self.start_socket_reader(self.m_socket_callback)
-                    print('Socket started')
-                    self.m_pipe_manager._write(json.dumps({'message_type': 'PROGRAM_STATE', 'status': True, 'message': 'Set-up and ready'}))
-        except Exception as e:
-            print('handle_init exception', e)
+                    print('Send to generation')
+                    print('SET UP AND READY')
+                    # self.m_pipe_manager._write({'message_type': 'PROGRAM_STATE', 'status': True, 'message': 'Set-up and ready'})
+        except:
+            import sys
+            import traceback
+            print('Mechant Sifi Requestor.py')
+            print(''.join(traceback.format_exception(*sys.exc_info())))
             pass #TODO handle post error
 
     """handle_control_session takes status and address as kwargs"""
     def handle_control_session(self, **kwargs):
+        print('handle_control_session [ENTER]', kwargs)
         try:
             json_payload = {
                 'message_type': self.m_message_type['CONTROL_SESSION'],
                 'status': kwargs['status']
             }
             response = self.post_wrapper(kwargs['address'], json_payload)
-            print('handle_control_session response:', response)
-            if response['data']['status']!= True and kwargs['stop'] == False: #TODO check que c'est bien du Pascal case
+            print('handle_control_session [SEND]', response)
+            if response['status']!= True and kwargs['stop'] == False: #TODO check que c'est bien du Pascal case
                 if self.m_config.m_ai_address == kwargs['address']:
                     self.start_request('CONTROL_SESSION', address=self.m_config.m_android_address, status=False, stop=True)
-                    self.m_pipe_manager._write(json.dumps({'message_type': 'PROGRAM_STATE', 'status': False, 'message': response['data']['message']}))
+                    # self.m_pipe_manager._write({'message_type': 'PROGRAM_STATE', 'status': False, 'message': response['data']['message']})
                 else:
                     self.start_request('CONTROL_SESSION', address=self.m_config.m_ai_address, status=False, stop=True)
-                    self.m_pipe_manager._write(json.dumps({'message_type': 'PROGRAM_STATE', 'status': False, 'message': response['data']['message']}))
-            else:
-                #TODO il recoit 2 running en l'etat et c'est nul
-                self.m_pipe_manager._write(json.dumps({'message_type': 'PROGRAM_STATE', 'status': True, 'message': 'Running'}))
+                    # self.m_pipe_manager._write({'message_type': 'PROGRAM_STATE', 'status': False, 'message': response['data']['message']})
+##            else:
+##                #TODO il recoit 2 running en l'etat et c'est nul
+##                self.m_pipe_manager._write({'message_type': 'PROGRAM_STATE', 'status': True, 'message': 'Running'})
         except:
-            print('handle_control_session', e)
+            import sys
+            import traceback
+            print('handle_control_session SSSSSSSSSSSIIIIIIIIIIIIIIIIIFFFFFFFFFFFFFFFFFFFIIIIIIIIIIIIIIII!!!!!!!!!!')
+            print(''.join(traceback.format_exception(*sys.exc_info())))
             pass
 
     """handle_fear_event takes data """
     def handle_fear_event(self, **kwargs):
+        print('in handle_fear_event')
         try:
             self.m_pipe_manager._write(kwargs['data'])
         except:
@@ -154,6 +196,7 @@ class Requestor():
         should not be used
     """
     def handle_program_state(self, **kwargs):
+        print('handle_program_state ???')
         try:
             json_payload = {
                 'message_type': self.m_message_type['PROGRAM_STATE'],
@@ -161,10 +204,13 @@ class Requestor():
                 'message': kwargs['message']
             }
             response = self.post_wrapper(kwargs['address'], json_payload)
-            print(response)
+            print('handle_program_state response', response)
         except:
-            print('handle_program_state', e)
-            pass
+            import sys
+            import traceback
+            print('Systemicaca handle_program_state')
+            print(''.join(traceback.format_exception(*sys.exc_info())))
+            raise
 
     """handle_init takes biofeedback, timestamp and address as kwargs"""
     def handle_biofeedback(self, **kwargs):
@@ -175,10 +221,12 @@ class Requestor():
                 'timestamp': kwargs['timestamp']
             }
             response = self.post_wrapper(kwargs['address'], json_payload)
-            print(response)
         except:
-            print('handle_biofeedback', e)
-            pass
+            import sys
+            import traceback
+            print('La scatocratie handle_biofeedback')
+            print(''.join(traceback.format_exception(*sys.exc_info())))
+            raise
 
-    def send_error_by_named_pipe(self, message):
-        self.m_pipe_manager._write(json.dumps({'message_type': 'PROGRAM_STATE', 'status': False, 'message': message}))
+    # def send_error_by_named_pipe(self, message):
+    #     self.m_pipe_manager._write({'message_type': 'PROGRAM_STATE', 'status': False, 'message': message})

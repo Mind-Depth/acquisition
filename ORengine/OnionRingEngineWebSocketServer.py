@@ -4,10 +4,20 @@ import threading
 import socket
 import json
 
+import sys
+
+from Utils.OreConstants import CLIENT_PORT
+
+old_write = sys.stdout.write
+def _write(*args, **kwargs):
+    old_write(*args, **kwargs)
+    sys.stdout.flush()
+sys.stdout.write = _write
+
 class OnionRingEngineWebSocketServer():
     def __init__(self, ip):
         self.m_ip = ip
-        self.m_port = 6666
+        self.m_port = CLIENT_PORT
         self.m_socket = socket.socket()
         self.m_client_socket = None
         threading.Thread.__init__(self)
@@ -18,6 +28,7 @@ class OnionRingEngineWebSocketServer():
         self.m_is_running = True
         self.m_socket.bind((self.m_ip, self.m_port))
         while True:
+            print('Listen', self.m_ip, self.m_port)
             self.m_socket.listen()
             self.m_client_socket, address = self.m_socket.accept()
             print('Connection from: ' + str(address))
@@ -48,4 +59,5 @@ class OnionRingEngineWebSocketServer():
         if self.m_client_socket is None:
             print('Unable to send fear event to the client : null client socket')
         else:
+            print('send_packet_to_client', message)
             self.m_client_socket.send(message.encode())

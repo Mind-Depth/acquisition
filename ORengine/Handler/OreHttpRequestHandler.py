@@ -7,6 +7,14 @@ import json
 from Utils.OreEnum import MessageType, OreCommandType
 from Utils.PacketFactory import PacketFactory
 
+import sys
+
+old_write = sys.stdout.write
+def _write(*args, **kwargs):
+    old_write(*args, **kwargs)
+    sys.stdout.flush()
+sys.stdout.write = _write
+
 class OreHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def send_cors_header(self):
@@ -50,8 +58,10 @@ class OreHTTPRequestHandler(BaseHTTPRequestHandler):
         response = BytesIO()
         response.write(content.encode())
         self.wfile.write(response.getvalue())
+        print('send_complete_response', code, content)
 
     def packet_parser(self, packet):
+        print('packet_parser', packet)
         if packet["message_type"] == MessageType['CONTROL_SESSION']:
             self.on_control_session_packet_received(packet)
         elif packet["message_type"] == MessageType['INIT']:
