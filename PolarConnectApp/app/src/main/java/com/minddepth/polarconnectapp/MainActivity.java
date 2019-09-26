@@ -2,9 +2,12 @@ package com.minddepth.polarconnectapp;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
+import android.location.LocationManager;
+import android.provider.Settings;
 import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -23,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private BLEConnector    mConnector;
     private DisplayableInfo mInfos;
     private PcaHttpServerController mServerController = new PcaHttpServerController();
+    private LocationManager locationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mInfos = new DisplayableInfo();
+        locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
         mConnector = new BLEConnector(this, mInfos, mServerController);
         if (mConnector.isBluetoothDisabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -37,7 +42,11 @@ public class MainActivity extends AppCompatActivity {
         }
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)!= PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},43);
-        } //TODO add gps activation check when launched
+        }
+        if (!locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) || !locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+        }
+
 
         mServerController.startServer();
 
@@ -51,6 +60,14 @@ public class MainActivity extends AppCompatActivity {
         mConnector.disconnect();
         mServerController.stopServer();
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 42) {
+            mConnector.getScanner();
+        }
+    }
+
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_ADMIN)
     public void onCheckedChanged(View view) {
