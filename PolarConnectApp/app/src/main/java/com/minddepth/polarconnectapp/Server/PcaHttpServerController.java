@@ -70,7 +70,7 @@ public class PcaHttpServerController implements IPcaPacketHandler {
             mServer.sendPendingResponse(200, new JSONObject("{\"message_type\": \"PROGRAM_STATE\", \"status\": true, \"message\": \"Pca successfully started\"}"));
             Log.d(TAG, "Launching Pca broadcasting...");
         } else if (mState == PcaHttpServerControllerState.STARTED && !packet.status) {
-            mState = PcaHttpServerControllerState.INIT;
+            mState = PcaHttpServerControllerState.IDLE;
             mServer.sendPendingResponse(200, new JSONObject("{\"message_type\": \"PROGRAM_STATE\", \"status\": true, \"message\": \"Pca successfully stopped\"}"));
             Log.d(TAG, "Stopping Pca broadcasting...");
         } else {

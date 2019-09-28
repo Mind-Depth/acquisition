@@ -18,6 +18,7 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.minddepth.polarconnectapp.Interfaces.IPcaPacketHandler;
 import com.minddepth.polarconnectapp.Models.BiofeedbackPacket;
@@ -46,8 +47,11 @@ public class BLEConnector extends Service {
         final BluetoothManager bluetoothManager =
                 (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
-        mBluetoothScanner = mBluetoothAdapter.getBluetoothLeScanner();
         mHandler = new Handler();
+    }
+
+    void getScanner() {
+        mBluetoothScanner = mBluetoothAdapter.getBluetoothLeScanner();
     }
 
     boolean isBluetoothDisabled() {
@@ -59,8 +63,7 @@ public class BLEConnector extends Service {
         @Override
         public void onScanFailed(int errorCode) {
             super.onScanFailed(errorCode);
-            Log.d("MinDepth", "Scanning for devices failed");
-            //TODO trigger a visual response for the user
+            Toast.makeText(mContext, "Scanning for devices failed", Toast.LENGTH_SHORT).show();
         }
 
         @Override

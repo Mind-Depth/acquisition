@@ -29,7 +29,7 @@ class PacketFactory():
             "bf": bpm,
             "timestamp": timestamp
         }
-        return json.dumps(fear_event_packet)
+        return fear_event_packet
 
     @staticmethod
     def get_json_from_packet(packet):

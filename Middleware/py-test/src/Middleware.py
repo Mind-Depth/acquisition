@@ -6,6 +6,12 @@ import bottle
 from Requestor import Requestor
 from Config import Config
 
+old_write = sys.stdout.write
+def _write(*args, **kwargs):
+    old_write(*args, **kwargs)
+    sys.stdout.flush()
+sys.stdout.write = _write
+
 class Middleware():
 
     def get_android_message_dict(self):
@@ -25,19 +31,28 @@ class Middleware():
         self.m_host = host
         self.m_port = port
         self.m_app = bottle.Bottle()
+
         self.m_config = Config(pipe_name=pipe_name, server_to_client=s_to_c, client_to_server=c_to_s)
         self.m_requestor = Requestor(self.handler_socket, self.m_config)
+
         self.m_ai_message_dict = self.get_ai_message_dict()
         self.m_android_message_dict = self.get_android_message_dict()
-        self.m_requestor.start_name_pipe_reader(self.handler_named_pipe)
+
+        # self.m_requestor.start_name_pipe_reader(self.handler_named_pipe)
         self._route()
 
     def _route(self):
-        self.m_app.route('/android', method="POST", callback=self.handler_android)
+        self.m_app.route('/biofeedback', method="POST", callback=self.handler_android)
         self.m_app.route('/server', method="POST", callback=self.handler_ai)
 
     def _start(self):
         self.m_app.run(host=self.m_host, port=self.m_port)
+
+        # DEBUG
+        data = {}
+        data['message_type'] = 'INIT'
+
+        self.handler_named_pipe(data)
 
     def _stop(self):
         # coder les envoies de requetes + sur le pipe disant qu'on stop le server
@@ -51,20 +66,21 @@ class Middleware():
     def handler_named_pipe(self, data):
         if data is None:
             return
-        if 'INIT' in data:
+        if data['message_type'] == 'INIT':
+            print('STARTING INIT')
             self.m_requestor.start_request('INIT', route=self.m_config.m_android_route, \
                 port=self.m_config.m_port, address=self.m_config.m_android_address)
             self.m_requestor.start_request('INIT', route=self.m_config.m_ai_route, \
                  port=self.m_config.m_port, address=self.m_config.m_ai_address)
-        elif 'CONTROL_SESSION' in data:
+        elif data['message_type'] == 'CONTROL_SESSION':
             self.m_requestor.start_request('CONTROL_SESSION', stop=False, address=self.m_config.m_android_address, status=data.status)
             self.m_requestor.start_request('CONTROL_SESSION', stop=False, address=self.m_config.m_ai_address, status=data.status)
         
     def handler_socket(self, data):
-        if data is None:
-            return
-        if 'BIOFEEDBACK' in data:
-            self.m_requestor.start_request('BIOFFEDBACK', data=data)
+##        if data is None:
+##            return
+##        if 'BIOFEEDBACK' in data:
+        self.m_requestor.start_request('FEAR_EVENT', data=data)
     #
     # ANDROID HANDLERS
     #
@@ -74,8 +90,12 @@ class Middleware():
             if 'message_type' in bottle.request.json:
                 self.m_android_message_dict[bottle.request.json['message_type']](bottle.request.json)
         except:
-            print('ERROR IN HANDLER_ANDROID')
-            # gérer le cas
+            import sys
+            import traceback
+            print('handler_android / Sifi faut pas except tout et n\'importe quwa :|')
+            print(''.join(traceback.format_exception(*sys.exc_info())))
+            raise
+##            print('ERROR IN HANDLER_ANDROID')
 
     def android_program_state(self, payload):
         try:
@@ -84,7 +104,6 @@ class Middleware():
                 self.m_requestor.start_request('CONTROL_SESSION', status=False, address=self.m_config.m_ai_address)
         except Exception as e:
             print(e)
-        print('in android_program_state')
 
     def android_biofeedback(self, payload):
         try:
@@ -92,7 +111,6 @@ class Middleware():
                 self.m_requestor.start_request('BIOFEEDBACK', biofeedback=payload['bf'], timestamp=payload['timestamp'], address=self.m_config.m_ai_address)
         except Exception as e:
             print(e)
-        print('in android_biofeedback')
 
 
     #
@@ -109,14 +127,15 @@ class Middleware():
 
     def ai_program_state(self, payload):
         # this is web socket handled
-        print('in android_biofeedback')
+        print('in cc')
 
     def ai_fear_event(self, payload):
         # this is web socket handled
-        print('in android_biofeedback')
+        print('in cc2')
 
 def main():
     if len(sys.argv) < 4:
+        print('Si usage sans chicha, tu peux mettre 3 args de merde, osef')
         return 1
     middleware = Middleware(sys.argv[1], sys.argv[2], sys.argv[3])
     middleware._start()
