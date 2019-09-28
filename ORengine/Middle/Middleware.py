@@ -16,9 +16,12 @@
 # TODO : PROGRAM_STATE TRUE FROM ORE && ACQUI
 # TODO : EXIT
 
-from MiddlewareHandler import MiddlewareHttpHandler
+from MiddlewareHttpServer import MiddlewareHttpServer
+from MiddlewareWebsocketServer import MiddlewareWebsocketServer
+from PrintUtils import log
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
+import threading
 import requests
 import json
 
@@ -28,7 +31,8 @@ class MiddlewareHttpController():
 
     def post_data_to_endpoint(self, data, url):
         try:
-            print('Sending ' + data + ' to ' + url)
+            log(self, 'Sending {} to {}'.format(data, url))
+            print()
             session = requests.Session()
             session.trust_env = False
             response = session.post(url = url, headers = self.get_header, data = data, timeout=10) 
@@ -40,27 +44,19 @@ class MiddlewareHttpController():
             'Content-Type':  'application/json'
         }
 
-class MiddlewareHttpServer(ThreadingMixIn, HTTPServer):
-    def __init__(self, ip, port):
-        self.m_ip = ip
-        self.m_port = port
-
-        ThreadingMixIn.__init__(self)
-        HTTPServer.__init__(self, (self.m_ip, self.m_port), MiddlewareHttpHandler)
-
-        self.start_server()
-
-    def start_server(self):
-        print('Launching HTTP server on ' + str(self.m_ip) + ':' + str(self.m_port))
-        self.serve_forever()
-
 class Middleware():
 
     def __init__(self, ip, port):
-        fear_event_http_server = MiddlewareHttpServer(ip, port)
-        # TODO : Launch websocket serv
+        self.m_http_server = MiddlewareHttpServer(ip, port)
+        self.m_http_server.start_server()
+        self.m_websocket_server = MiddlewareWebsocketServer(ip, port + 1)
+        self.m_websocket_server.start_server()
         # TODO : Launch named pipe unit
         # TODO : INIT ore and Android
+
+    def shutdown_servers(self):
+        self.m_http_server.stop_server()
+        self.m_websocket.stop_server()
 
 if __name__ == "__main__":
     Middleware('localhost', 8484)
