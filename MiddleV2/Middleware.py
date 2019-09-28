@@ -16,9 +16,9 @@
 # TODO : PROGRAM_STATE TRUE FROM ORE && ACQUI
 # TODO : EXIT
 
-from MiddlewareHttpServer import MiddlewareHttpServer
-from MiddlewareWebsocketServer import MiddlewareWebsocketServer
-from PrintUtils import log
+from Servers.MiddlewareHttpServer import MiddlewareHttpServer
+from Servers.MiddlewareWebsocketServer import MiddlewareWebsocketServer
+from Utils.PrintUtils import log
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
 import threading
@@ -51,7 +51,7 @@ class Middleware():
         self.m_http_server.start_server()
         self.m_websocket_server = MiddlewareWebsocketServer(ip, port + 1)
         self.m_websocket_server.start_server()
-        # TODO : Launch named pipe unit
+        # TODO : Init named pipe unit here
         # TODO : INIT ore and Android
 
     def shutdown_servers(self):

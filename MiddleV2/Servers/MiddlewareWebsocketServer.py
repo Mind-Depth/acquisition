@@ -1,6 +1,6 @@
 #!/usr/local/bin/python3
 
-from PrintUtils import log
+from Utils.PrintUtils import log
 import threading
 import socket
 import json

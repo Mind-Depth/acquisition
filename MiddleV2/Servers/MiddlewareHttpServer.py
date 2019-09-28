@@ -1,7 +1,7 @@
 #!/usr/local/bin/python3
 
-from MiddlewareHandler import MiddlewareHttpHandler
-from PrintUtils import log
+from Servers.MiddlewareHandler import MiddlewareHttpHandler
+from Utils.PrintUtils import log
 from http.server import HTTPServer
 from socketserver import ThreadingMixIn
 import threading
