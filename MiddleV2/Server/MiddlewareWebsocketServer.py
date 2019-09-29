@@ -9,6 +9,7 @@ class MiddlewareWebsocketServer():
     def __init__(self, ip, port):
         self.m_ip = ip
         self.m_port = port
+        self.m_client_socket = None
         self.m_socket = socket.socket()
         self.m_thread = threading.Thread(target = self.run_serv)
 
@@ -33,7 +34,7 @@ class MiddlewareWebsocketServer():
         log(self, 'Launching the Middleware Websocket Server on {} : {}'.format(str(self.m_ip), str(self.m_port)))
         self.m_thread.start()
         
-    def  stop_server(self):
+    def stop_server(self):
         log(self, 'Stopping the Middleware Websocket Server')
         self.m_is_running = False
         if self.m_client_socket is None:

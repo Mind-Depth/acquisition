@@ -1,6 +1,6 @@
 #!/usr/local/bin/python3
 
-from Servers.MiddlewareHandler import MiddlewareHttpHandler
+from Server.MiddlewareHandler import MiddlewareHttpHandler
 from Utils.PrintUtils import log
 from http.server import HTTPServer
 from socketserver import ThreadingMixIn
@@ -25,4 +25,4 @@ class MiddlewareHttpServer(ThreadingMixIn, HTTPServer):
 
     def stop_server(self):
         log(self, 'Stopping MiddlewareHttpServer')
-        self.m_thread.join()
+        self.m_thread.terminate()
