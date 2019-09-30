@@ -16,34 +16,16 @@
 # TODO : PROGRAM_STATE TRUE FROM ORE && ACQUI
 # TODO : EXIT
 
+from Server.MiddlewareHttpController import MiddlewareHttpController
 from Server.MiddlewareHttpServer import MiddlewareHttpServer
 from Server.MiddlewareWebsocketServer import MiddlewareWebsocketServer
 from Utils.PrintUtils import log
+from Utils.PacketFactory import PacketFactory
+from Utils.IpUtils import get_ip
 from Keyboard.KeyboardController import KeyboardController
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
-import threading
-import requests
-import json
 import sys
-
-class MiddlewareHttpController():
-    def  __init__(self):
-        self.packet_callbacks = {}
-
-    def post_data_to_endpoint(self, data, url):
-        try:
-            log(self, 'Sending {} to {}'.format(data, url))
-            session = requests.Session()
-            session.trust_env = False
-            response = session.post(url = url, headers = self.get_header, data = data, timeout=10) 
-        except requests.exceptions.ReadTimeout:
-            pass
-
-    def get_header(self):
-        return {
-            'Content-Type': 'application/json'
-        }
 
 class Middleware():
 
@@ -53,12 +35,22 @@ class Middleware():
             'stop': self.stop_session
         }
 
+        self.m_ip = 'localhost'
+        #self.m_ip = get_ip()
+        self.m_port = ore_port + 1
+
+        self.m_ore_ip = ore_ip
+        self.m_ore_port = ore_port
+        self.m_ore_rte = '/server'
+        self.m_android_ip = android_ip
+        self.m_android_port = android_port
+        self.m_android_rte = '/android'
+
         self.m_middleware_http_sender = MiddlewareHttpController()
-        self.m_websocket_server = MiddlewareWebsocketServer(ore_ip, ore_port + 1)
+        self.m_websocket_server = MiddlewareWebsocketServer(self.m_ip, self.m_port)
         self.m_websocket_server.start_server()
         self.m_keyboard_controller = KeyboardController(self.keyboard_callback)
         self.m_keyboard_controller.start()
-
         # TODO : Init named pipe unit here
 
     def shutdown_middleware(self):
@@ -77,7 +69,8 @@ class Middleware():
 
     def start_session(self):
         log(self, 'Starting session')
-        # TODO : Send INIT to ore and Android
+        self.m_middleware_http_sender.post_data_to_endpoint(PacketFactory.get_init_json(self.m_ip, self.m_port, self.m_ore_rte), 'http://{}:{}'.format(self.m_ore_ip, self.m_ore_port))
+        self.m_middleware_http_sender.post_data_to_endpoint(PacketFactory.get_init_json(self.m_ip, self.m_port, self.m_android_rte), 'http://{}:{}'.format(self.m_android_ip, self.m_android_port))
 
     def stop_session(self):
         log(self, 'Stopping session')
