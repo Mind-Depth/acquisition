@@ -10,7 +10,7 @@ class MiddlewareHttpController():
         self.packet_callbacks = {}
 
     def post_data_to_endpoint(self, data, url):
-        new_thread = threading.Thread(target = self.post(data, url))
+        new_thread = threading.Thread(target = self.post, args = (data, url))
         new_thread.start()
 
     def get_header(self):
@@ -23,7 +23,7 @@ class MiddlewareHttpController():
             log(self, 'Sending {} to {}'.format(data, url))
             session = requests.Session()
             session.trust_env = False
-            response = session.post(url = url, headers = self.get_header(), data = data, timeout=10) 
+            response = session.post(url = url, headers = self.get_header(), data = data, timeout=2) 
         except requests.exceptions.ReadTimeout:
             log(self, 'Timed out')
         except requests.exceptions.ConnectionError:
