@@ -14,6 +14,14 @@ class PacketFactory():
         return json.dumps(program_state_packet)
 
     @staticmethod
+    def get_control_session_json(status):
+        control_session_packet = {
+            "message_type": "CONTROL_SESSION",
+            "status": status
+        }
+        return json.dumps(control_session_packet)
+
+    @staticmethod
     def get_init_json(client_ip, client_port, client_rte):
         init_packet = {
             "message_type": "INIT",

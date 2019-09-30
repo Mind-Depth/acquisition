@@ -36,6 +36,12 @@ class Middleware():
             'stop': self.stop_session
         }
 
+        self.m_packets_factory = {
+            "INIT": self.on_init_packet_response_received,
+            "CONTROL_SESSION_True": self.on_control_session_true_packet_received,
+            "CONTROL_SESSION_False": self.on_control_session_false_packet_received
+        }
+
         self.m_ip = 'localhost'
         #self.m_ip = get_ip()
         self.m_port = MIDDLE_PORT
@@ -47,7 +53,7 @@ class Middleware():
         self.m_android_port = android_port
         self.m_android_rte = '/android'
 
-        self.m_middleware_http_sender = MiddlewareHttpController()
+        self.m_middleware_http_sender = MiddlewareHttpController(self.m_packets_factory)
         self.m_websocket_server = MiddlewareWebsocketServer(self.m_ip, self.m_port)
         self.m_websocket_server.start_server()
         self.m_keyboard_controller = KeyboardController(self.m_keyboard_factory)
@@ -57,6 +63,19 @@ class Middleware():
     def shutdown_middleware(self):
         self.m_websocket_server.stop_server()
         self.m_keyboard_controller.stop()
+
+    ###
+    # Callbacks from MiddlewareHttpController
+    ###
+
+    def on_init_packet_response_received(self, packet):
+        pass
+
+    def on_control_session_true_packet_received(self, packet):
+        pass
+
+    def on_control_session_false_packet_received(self, packet):
+        pass
 
     ###
     # Callbacks from KeyboardController

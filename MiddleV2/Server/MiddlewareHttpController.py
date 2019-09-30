@@ -6,8 +6,8 @@ import requests
 import json
 
 class MiddlewareHttpController():
-    def  __init__(self):
-        self.packet_callbacks = {}
+    def  __init__(self, callbacks):
+        self.m_callbacks = callbacks
 
     def post_data_to_endpoint(self, data, url):
         new_thread = threading.Thread(target = self.post, args = (data, url))
@@ -23,8 +23,13 @@ class MiddlewareHttpController():
             log(self, 'Sending {} to {}'.format(data, url))
             session = requests.Session()
             session.trust_env = False
-            response = session.post(url = url, headers = self.get_header(), data = data, timeout=2) 
-            # TODO : check data sent and act appropriately
+            response = session.post(url = url, headers = self.get_header(), data = data, timeout=2)
+
+            if data["message_type"] is "INIT":
+                self.m_callbacks["INIT"](response)
+            elif data["message_type"] is "CONTROL_SESSION":
+                print("CONTROL_SESSION_{}".format(str(data["status"])))
+                self.m_callbacks["CONTROL_SESSION_{}".format(str(data["status"]))](response)
         except requests.exceptions.ReadTimeout:
             log(self, 'Timed out')
         except requests.exceptions.ConnectionError:
