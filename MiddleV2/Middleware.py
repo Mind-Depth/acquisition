@@ -23,6 +23,7 @@ from Utils.PrintUtils import log
 from Utils.PacketFactory import PacketFactory
 from Utils.IpUtils import get_ip
 from Keyboard.KeyboardController import KeyboardController
+from Config import *
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
 import sys
@@ -37,7 +38,7 @@ class Middleware():
 
         self.m_ip = 'localhost'
         #self.m_ip = get_ip()
-        self.m_port = ore_port + 1
+        self.m_port = MIDDLE_PORT
 
         self.m_ore_ip = ore_ip
         self.m_ore_port = ore_port
@@ -76,4 +77,4 @@ class Middleware():
         log(self, 'Stopping session')
 
 if __name__ == "__main__":
-    Middleware(ore_ip='localhost', ore_port=8484, android_ip='localhost', android_port=4242)
+    Middleware(ore_ip=ORE_IP, ore_port=ORE_PORT, android_ip=ANDROID_IP, android_port=ANDROID_PORT)

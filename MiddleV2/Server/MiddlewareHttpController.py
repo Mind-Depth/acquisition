@@ -24,6 +24,7 @@ class MiddlewareHttpController():
             session = requests.Session()
             session.trust_env = False
             response = session.post(url = url, headers = self.get_header(), data = data, timeout=2) 
+            # TODO : check data sent and act appropriately
         except requests.exceptions.ReadTimeout:
             log(self, 'Timed out')
         except requests.exceptions.ConnectionError:
