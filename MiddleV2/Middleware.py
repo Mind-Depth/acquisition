@@ -50,7 +50,7 @@ class Middleware():
         self.m_middleware_http_sender = MiddlewareHttpController()
         self.m_websocket_server = MiddlewareWebsocketServer(self.m_ip, self.m_port)
         self.m_websocket_server.start_server()
-        self.m_keyboard_controller = KeyboardController(self.keyboard_callback)
+        self.m_keyboard_controller = KeyboardController(self.m_keyboard_factory)
         self.m_keyboard_controller.start()
         # TODO : Init named pipe unit here
 
@@ -61,12 +61,6 @@ class Middleware():
     ###
     # Callbacks from KeyboardController
     ###
-
-    def keyboard_callback(self, key):
-        try:
-            self.m_keyboard_factory[key]()
-        except KeyError:
-            log(self, 'The input is not valid')
 
     def start_session(self):
         log(self, 'Starting session')

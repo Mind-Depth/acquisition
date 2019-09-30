@@ -6,8 +6,8 @@ from Utils.PrintUtils import log
 
 
 class KeyboardController():
-    def __init__(self, callback):
-        self.m_middleware_callback = callback
+    def __init__(self, callbacks):
+        self.m_middleware_callbacks = callbacks
         self.m_thread = threading.Thread(target = self.run_keyboard_loop)
 
     def start(self):
@@ -20,4 +20,7 @@ class KeyboardController():
 
     def run_keyboard_loop(self):
         for line in sys.stdin:
-            self.m_middleware_callback(line.rstrip())
+            try:
+                self.m_middleware_callbacks[line.rstrip()]()
+            except KeyError:
+                log(self, 'The input {} is not valid'.format(line.rstrip()))
