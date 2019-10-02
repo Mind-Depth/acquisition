@@ -37,7 +37,9 @@ class Requestor():
             'BIOFEEDBACK': 'BIOFEEDBACK'
         }
 
-    def __init__(self, socket_callback, config):
+    def __init__(self, socket_callback, config, handler_debug):
+
+       self.m_debug_callback = handler_debug 
        self.m_config = config
        self.m_socket_callback = socket_callback
        self.m_message_type = self.init_message_type()
@@ -130,7 +132,7 @@ class Requestor():
                     print('State are True')
                     try:
                         status = self.m_websocket_manager._connect(self.m_config.m_socket_host, self.m_config.m_socket_port)
-                        t = threading.Thread(target=self.m_websocket_manager._read)
+                        t = threading.Thread(target=self.m_websocket_manager._read, args=[self.m_socket_callback])
                         t.start()
                     except:
                         print('Except')
@@ -148,6 +150,7 @@ class Requestor():
                     self.start_socket_reader(self.m_socket_callback)
                     print('Send to generation')
                     print('SET UP AND READY')
+                    self.m_debug_callback()
                     # self.m_pipe_manager._write({'message_type': 'PROGRAM_STATE', 'status': True, 'message': 'Set-up and ready'})
         except:
             import sys

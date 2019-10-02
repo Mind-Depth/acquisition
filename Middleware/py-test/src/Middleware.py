@@ -33,7 +33,7 @@ class Middleware():
         self.m_app = bottle.Bottle()
 
         self.m_config = Config(pipe_name=pipe_name, server_to_client=s_to_c, client_to_server=c_to_s)
-        self.m_requestor = Requestor(self.handler_socket, self.m_config)
+        self.m_requestor = Requestor(self.handler_socket, self.m_config, self.handler_debug)
 
         self.m_ai_message_dict = self.get_ai_message_dict()
         self.m_android_message_dict = self.get_android_message_dict()
@@ -73,12 +73,25 @@ class Middleware():
             self.m_requestor.start_request('INIT', route=self.m_config.m_ai_route, \
                  port=self.m_config.m_port, address=self.m_config.m_ai_address)
         elif data['message_type'] == 'CONTROL_SESSION':
-            self.m_requestor.start_request('CONTROL_SESSION', stop=False, address=self.m_config.m_android_address, status=data.status)
-            self.m_requestor.start_request('CONTROL_SESSION', stop=False, address=self.m_config.m_ai_address, status=data.status)
+
+            #DEBUG
+            self.m_requestor.start_request('CONTROL_SESSION', stop=False, address=self.m_config.m_android_address, status=True)
+            self.m_requestor.start_request('CONTROL_SESSION', stop=False, address=self.m_config.m_ai_address, status=True)
+            #!DEBUG
+            
+            # self.m_requestor.start_request('CONTROL_SESSION', stop=False, address=self.m_config.m_android_address, status=data.status)
+            # self.m_requestor.start_request('CONTROL_SESSION', stop=False, address=self.m_config.m_ai_address, status=data.status)
+
+    def handler_debug(self):
+        data = {}
+        data['message_type'] = 'CONTROL_SESSION'
+        self.handler_named_pipe(data)
         
     def handler_socket(self, data):
-##        if data is None:
-##            return
+        print(data)
+        if data is None:
+           print('DATA IS NONE IN SOCKET CALLBACK')
+           return
 ##        if 'BIOFEEDBACK' in data:
         self.m_requestor.start_request('FEAR_EVENT', data=data)
     #
