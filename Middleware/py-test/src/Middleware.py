@@ -3,6 +3,8 @@
 import os
 import sys
 import bottle
+import time
+import threading
 from Requestor import Requestor
 from Config import Config
 
@@ -27,7 +29,7 @@ class Middleware():
             'PROGRAM_STATE': self.ai_program_state,
         }
 
-    def __init__(self, pipe_name, s_to_c, c_to_s, host='localhost', port=8080):
+    def __init__(self, pipe_name, s_to_c, c_to_s, host='0.0.0.0', port=8080):
         self.m_host = host
         self.m_port = port
         self.m_app = bottle.Bottle()
@@ -46,13 +48,17 @@ class Middleware():
         self.m_app.route('/server', method="POST", callback=self.handler_ai)
 
     def _start(self):
-        self.m_app.run(host=self.m_host, port=self.m_port)
 
         # DEBUG
         data = {}
         data['message_type'] = 'INIT'
 
-        self.handler_named_pipe(data)
+        # self.handler_named_pipe(data)
+        t = threading.Thread(target=self.handler_named_pipe, args=[data])
+        t.start()
+
+        self.m_app.run(host=self.m_host, port=self.m_port)
+
 
     def _stop(self):
         # coder les envoies de requetes + sur le pipe disant qu'on stop le server
@@ -64,6 +70,7 @@ class Middleware():
     #
 
     def handler_named_pipe(self, data):
+        time.sleep(2)
         if data is None:
             return
         if data['message_type'] == 'INIT':
@@ -99,6 +106,8 @@ class Middleware():
     #
 
     def handler_android(self):
+        print('WELCOME TO HANDLER ANDROID\n')
+        print(bottle.request.json)
         try:
             if 'message_type' in bottle.request.json:
                 self.m_android_message_dict[bottle.request.json['message_type']](bottle.request.json)
