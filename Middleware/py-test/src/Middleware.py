@@ -35,12 +35,12 @@ class Middleware():
         self.m_app = bottle.Bottle()
 
         self.m_config = Config(pipe_name=pipe_name, server_to_client=s_to_c, client_to_server=c_to_s)
-        self.m_requestor = Requestor(self.handler_socket, self.m_config, self.handler_debug)
+        self.m_requestor = Requestor(self.handler_socket, self.m_config)
 
         self.m_ai_message_dict = self.get_ai_message_dict()
         self.m_android_message_dict = self.get_android_message_dict()
 
-        # self.m_requestor.start_name_pipe_reader(self.handler_named_pipe)
+        self.m_requestor.start_name_pipe_reader(self.handler_named_pipe)
         self._route()
 
     def _route(self):
@@ -48,15 +48,6 @@ class Middleware():
         self.m_app.route('/server', method="POST", callback=self.handler_ai)
 
     def _start(self):
-
-        # DEBUG
-        data = {}
-        data['message_type'] = 'INIT'
-
-        # self.handler_named_pipe(data)
-        t = threading.Thread(target=self.handler_named_pipe, args=[data])
-        t.start()
-
         self.m_app.run(host=self.m_host, port=self.m_port)
 
 
@@ -70,7 +61,7 @@ class Middleware():
     #
 
     def handler_named_pipe(self, data):
-        time.sleep(2)
+        time.sleep(1)
         if data is None:
             return
         if data['message_type'] == 'INIT':
@@ -81,19 +72,9 @@ class Middleware():
                  port=self.m_config.m_port, address=self.m_config.m_ai_address)
         elif data['message_type'] == 'CONTROL_SESSION':
 
-            #DEBUG
-            self.m_requestor.start_request('CONTROL_SESSION', stop=False, address=self.m_config.m_android_address, status=True)
-            self.m_requestor.start_request('CONTROL_SESSION', stop=False, address=self.m_config.m_ai_address, status=True)
-            #!DEBUG
-            
-            # self.m_requestor.start_request('CONTROL_SESSION', stop=False, address=self.m_config.m_android_address, status=data.status)
-            # self.m_requestor.start_request('CONTROL_SESSION', stop=False, address=self.m_config.m_ai_address, status=data.status)
+            self.m_requestor.start_request('CONTROL_SESSION', stop=False, address=self.m_config.m_android_address, status=data.status)
+            self.m_requestor.start_request('CONTROL_SESSION', stop=False, address=self.m_config.m_ai_address, status=data.status)
 
-    def handler_debug(self):
-        data = {}
-        data['message_type'] = 'CONTROL_SESSION'
-        self.handler_named_pipe(data)
-        
     def handler_socket(self, data):
         print(data)
         if data is None:
@@ -157,7 +138,7 @@ class Middleware():
 
 def main():
     if len(sys.argv) < 4:
-        print('Si usage sans chicha, tu peux mettre 3 args de merde, osef')
+        print('Si usage sans gen, tu peux mettre 3 args random')
         return 1
     middleware = Middleware(sys.argv[1], sys.argv[2], sys.argv[3])
     middleware._start()

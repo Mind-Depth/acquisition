@@ -22,5 +22,5 @@ class Config():
         print('My public IP is : ' + self.m_public_ip)
         print('My local IP is : ' + self.m_local_ip)
 
-        self.m_android_address = 'http://localhost:8282'
+        self.m_android_address = 'http://100.123.107.174:8080'
         self.m_ai_address = 'http://localhost:4242'
