@@ -97,7 +97,7 @@ class DataMockerHttpServer(HTTPServer):
     def on_init_command_received(self, handler, packet):
         if self.m_is_server_init:
             print('Mocker already init')
-            handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'DataMocker already init'))
+            handler.send_complete_response(200, PacketFactory.get_program_state_json(False, 'DataMocker already init'))
         else:
             print('Mocker init')
             self.m_is_server_init = True
@@ -110,7 +110,7 @@ class DataMockerHttpServer(HTTPServer):
         print("Start handler")
         if not self.m_csv_reader.start():
             print('Mocker already started')
-            handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'CsvReader already launched'))
+            handler.send_complete_response(200, PacketFactory.get_program_state_json(False, 'CsvReader already launched'))
         else:
             print('Mocker started')
             handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'Launching DataMocker'))
@@ -119,7 +119,7 @@ class DataMockerHttpServer(HTTPServer):
     def on_stop_command_received(self, handler, packet):
         if not self.m_csv_reader.stop():
             print('Mocker already stopped')
-            handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'CsvReader already stopped'))
+            handler.send_complete_response(200, PacketFactory.get_program_state_json(False, 'CsvReader already stopped'))
         else:
             print('Mocker stopped')
             handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'Stopping DataMocker'))
