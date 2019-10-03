@@ -45,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
         }
         if (!locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) || !locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+        } else {
+            mConnector.getScanner();
         }
 
 
