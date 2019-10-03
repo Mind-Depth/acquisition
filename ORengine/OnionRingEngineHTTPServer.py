@@ -45,7 +45,7 @@ class OnionRingEngineHTTPServer(HTTPServer):
         if not self.m_is_server_ready:
             handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'ORE not ready yet'))
         elif self.m_is_server_init:
-            handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'ORE already init'))
+            handler.send_complete_response(200, PacketFactory.get_program_state_json(False, 'ORE already init'))
         else:
             self.m_is_server_init = True
             self.start_websocket_server()
@@ -53,13 +53,13 @@ class OnionRingEngineHTTPServer(HTTPServer):
 
     def on_start_command_received(self, handler, packet):
         if not self.m_fear_engine.launch():# TODO False
-            handler.send_complete_response(400, PacketFactory.get_program_state_json(True, 'AI already launched'))
+            handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'AI already launched'))
         else:
             handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'Launching Onion Ring Engine AI'))
 
     def on_stop_command_received(self, handler, packet):
         if not self.m_fear_engine.stop(): # TODO False
-            handler.send_complete_response(400, PacketFactory.get_program_state_json(True, 'AI already stopped'))
+            handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'AI already stopped'))
         else:
             self.stop_websocket_server()
             handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'Stopping Onion Ring Engine AI'))
