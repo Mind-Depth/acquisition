@@ -35,8 +35,11 @@ class WidgetReaderPlotter(QWidget, IGraphicalUpdateHandler, metaclass=IGraphical
         self.plotPolyline(self.loadedData)
 
     def plotEvents(self):
-        for event in self.loadedEvents:
-            self.canvas.plotEvents(event)
+        try:
+            for event in self.loadedEvents:
+                self.canvas.plotEvents(event)
+        except TypeError:
+            self.canvas.plotEvents(self.loadedEvents)
 
     def plotPolyline(self, buff, color='-b'):
         self.canvas.plotData(buff, color)

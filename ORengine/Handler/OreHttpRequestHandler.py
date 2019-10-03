@@ -39,16 +39,12 @@ class OreHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         content_length = int(self.headers['Content-Length'])
         body = self.rfile.read(content_length)
-        jsonPacket = PacketFactory.get_json_from_packet(body)
-        print(jsonPacket)
-        self.packet_parser(jsonPacket)
-        """try:
+        try:
             jsonPacket = PacketFactory.get_json_from_packet(body)
-            print(jsonPacket)
             self.packet_parser(jsonPacket)
         except json.decoder.JSONDecodeError:
             print('ERROR: Unable to parse the current Json : ' + str(body))
-            self.send_complete_response(400, PacketFactory.get_program_state_json(False, 'Unable to parse the current Json'))"""
+            self.send_complete_response(400, PacketFactory.get_program_state_json(False, 'Unable to parse the current Json'))
 
     def send_complete_response(self, code, content):
         self.send_response(code)

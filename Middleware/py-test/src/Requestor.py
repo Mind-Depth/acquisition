@@ -37,7 +37,9 @@ class Requestor():
             'BIOFEEDBACK': 'BIOFEEDBACK'
         }
 
+    # DEBUG 
     def __init__(self, socket_callback, config):
+
        self.m_config = config
        self.m_socket_callback = socket_callback
        self.m_message_type = self.init_message_type()
@@ -45,7 +47,7 @@ class Requestor():
        self.m_state_init_android = False
        self.m_state_init_ai = False
        self.m_websocket_manager = Websockets()
-    #    self.m_pipe_manager = NamedPipeManager(self.m_config)
+       self.m_pipe_manager = NamedPipeManager(self.m_config)
 
     #json_payload => dict object
     def post_wrapper(self, address, json_payload):
@@ -83,9 +85,9 @@ class Requestor():
         t.start()
         
 
-    # def start_name_pipe_reader(self, requestor_callback):
-    #     t = threading.Thread(target=self.m_pipe_manager._read, args=[requestor_callback])
-    #     t.start()
+    def start_name_pipe_reader(self, requestor_callback):
+        t = threading.Thread(target=self.m_pipe_manager._read, args=[requestor_callback])
+        t.start()
 
     def start_socket_reader(self, socket_callback):
         t = threading.Thread(target=self.m_websocket_manager._read, args=[socket_callback])
@@ -113,10 +115,10 @@ class Requestor():
 ##                if self.m_config.m_ai_address in response['url']:
                 if kwargs['address'] == 'http://localhost:4242':
                     self.start_request('CONTROL_SESSION', address=self.m_config.m_android_address, status=False)
-                    # self.send_error_by_named_pipe(response['data']['message'])
+                    self.send_error_by_named_pipe(response['data']['message'])
                 else:
                     self.start_request('CONTROL_SESSION', address=self.m_config.m_ai_address, status=False)
-                    # self.send_error_by_named_pipe(response['data']['message'])
+                    self.send_error_by_named_pipe(response['data']['message'])
             else:
 ##                if self.m_config.m_ai_address in response['url']:
                 if kwargs['address'] == 'http://localhost:4242':
@@ -130,7 +132,7 @@ class Requestor():
                     print('State are True')
                     try:
                         status = self.m_websocket_manager._connect(self.m_config.m_socket_host, self.m_config.m_socket_port)
-                        t = threading.Thread(target=self.m_websocket_manager._read)
+                        t = threading.Thread(target=self.m_websocket_manager._read, args=[self.m_socket_callback])
                         t.start()
                     except:
                         print('Except')
@@ -142,13 +144,13 @@ class Requestor():
                         print('Status False')
                         self.start_request('CONTROL_SESSION', address=self.m_config.m_android_address, status=False)
                         self.start_request('CONTROL_SESSION', address=self.m_config.m_ai_address, status=False)
-                        # self.send_error_by_named_pipe('Cannot establish network connexion with ORE')
+                        self.send_error_by_named_pipe('Cannot establish network connexion with ORE')
                         return False
 
                     self.start_socket_reader(self.m_socket_callback)
                     print('Send to generation')
                     print('SET UP AND READY')
-                    # self.m_pipe_manager._write({'message_type': 'PROGRAM_STATE', 'status': True, 'message': 'Set-up and ready'})
+                    self.m_pipe_manager._write({'message_type': 'PROGRAM_STATE', 'status': True, 'message': 'Set-up and ready'})
         except:
             import sys
             import traceback
@@ -169,10 +171,10 @@ class Requestor():
             if response['status']!= True and kwargs['stop'] == False: #TODO check que c'est bien du Pascal case
                 if self.m_config.m_ai_address == kwargs['address']:
                     self.start_request('CONTROL_SESSION', address=self.m_config.m_android_address, status=False, stop=True)
-                    # self.m_pipe_manager._write({'message_type': 'PROGRAM_STATE', 'status': False, 'message': response['data']['message']})
+                    self.m_pipe_manager._write({'message_type': 'PROGRAM_STATE', 'status': False, 'message': response['data']['message']})
                 else:
                     self.start_request('CONTROL_SESSION', address=self.m_config.m_ai_address, status=False, stop=True)
-                    # self.m_pipe_manager._write({'message_type': 'PROGRAM_STATE', 'status': False, 'message': response['data']['message']})
+                    self.m_pipe_manager._write({'message_type': 'PROGRAM_STATE', 'status': False, 'message': response['data']['message']})
 ##            else:
 ##                #TODO il recoit 2 running en l'etat et c'est nul
 ##                self.m_pipe_manager._write({'message_type': 'PROGRAM_STATE', 'status': True, 'message': 'Running'})
@@ -228,5 +230,5 @@ class Requestor():
             print(''.join(traceback.format_exception(*sys.exc_info())))
             raise
 
-    # def send_error_by_named_pipe(self, message):
-    #     self.m_pipe_manager._write({'message_type': 'PROGRAM_STATE', 'status': False, 'message': message})
+    def send_error_by_named_pipe(self, message):
+        self.m_pipe_manager._write({'message_type': 'PROGRAM_STATE', 'status': False, 'message': message})
