@@ -39,7 +39,7 @@ class OnionRingEngineWebSocketServer():
                     data = self.m_client_socket.recv(1024).decode()
                 except OSError:
                     print('Force closing the connexion with the actual client')
-                if not data:
+                if data is None:
                     print('Client ' + str(address) + ' disconnected')
                     break
             self.m_client_socket.close()
