@@ -56,9 +56,13 @@ class FearEngine():
             return False
 
     def predict_buff(self, buff):
+
         analysed_buff = []
         for bf in buff:
             analysed_buff.append(bf[0])
+        return (analysed_buff[0] > 110), 1
+        # TODO
+
         y_pred = self.m_model.predict(analysed_buff)
         predictions = [round(value) for value in y_pred]
         accuracy = accuracy_score(y_pred, predictions)
