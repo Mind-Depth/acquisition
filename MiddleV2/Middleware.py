@@ -65,7 +65,7 @@ class Middleware():
         self.m_websocket_server.start_server()
         self.m_keyboard_controller = KeyboardController(self.m_keyboard_factory)
         self.m_keyboard_controller.start()
-        # TODO : Init named pipe unit here
+        # TODO : Init named pipe controller here
 
     def shutdown_middleware(self):
         self.m_websocket_server.stop_server()
