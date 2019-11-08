@@ -2,7 +2,5 @@
   python:
     - "3.6"
   script:
-    - pip install -r requirement.txt
-    - cd ./DemoAcqui/Tests/
-    - python -m unittest -v TrainingDataConsistencyTest
-    - python -m unittest -v PlotterTest
+    - pip3 install -r requirement.txt
+    - python3 -m unittest -v TrainingDataConsistencyTest
