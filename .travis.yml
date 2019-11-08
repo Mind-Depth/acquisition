@@ -13,4 +13,4 @@
       - stage: "Deploy"
         if: branch = master
         script:
-          - echo "Deloy stage"
+          - echo "Deploy stage"
