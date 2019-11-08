@@ -2,7 +2,17 @@
   cache: pip3
   python:
     - "3.6"
-  script:
-    - cd ORengine/
-    - pip3 install -r requirements.txt
-    - python3 -m unittest -v TrainingDataConsistencyTest
+
+  jobs:
+    include:
+      - stage: "Init"
+        script:
+          - cd ORengine/
+          - pip3 install -r requirements.txt
+      - stage: "Test"
+        script:
+          - python3 -m unittest -v TrainingDataConsistencyTest
+      - stage: "Deploy"
+        if: branch = master
+        script:
+          - echo "Deloy stage"
