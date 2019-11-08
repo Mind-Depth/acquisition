@@ -5,12 +5,10 @@
 
   jobs:
     include:
-      - stage: "Init"
+      - stage: "Test"
         script:
           - cd ORengine/
           - pip3 install -r requirements.txt
-      - stage: "Test"
-        script:
           - python3 -m unittest -v TrainingDataConsistencyTest
       - stage: "Deploy"
         if: branch = master
