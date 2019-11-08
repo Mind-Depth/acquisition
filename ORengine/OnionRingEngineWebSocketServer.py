@@ -8,12 +8,6 @@ import sys
 
 from Utils.OreConstants import CLIENT_PORT
 
-old_write = sys.stdout.write
-def _write(*args, **kwargs):
-    old_write(*args, **kwargs)
-    sys.stdout.flush()
-sys.stdout.write = _write
-
 class OnionRingEngineWebSocketServer():
     def __init__(self, ip):
         self.m_ip = ip

@@ -11,7 +11,7 @@ from sklearn.metrics import accuracy_score
 from Utils.OreEnum import FearEngineState
 
 class FearEngine():
-    def __init__(self, dataset_path='./TrainingDataset/defautlDataset.csv'):
+    def __init__(self, dataset_path='./TrainingDataset/defaultDataset.csv'):
          self.m_model = XGBClassifier()
          self.m_dataset_path = dataset_path
          self.m_curr_buff = []

@@ -1,9 +1,9 @@
 #!/usr/local/bin/python3
 
+import json
 from io import BytesIO
 from enum import Enum
 from http.server import BaseHTTPRequestHandler
-import json
 from Utils.OreEnum import MessageType, OreCommandType
 from Utils.PacketFactory import PacketFactory
 

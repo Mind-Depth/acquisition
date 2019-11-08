@@ -1,12 +1,6 @@
 numpy
 xgboost
 datetime
-click
-matplotlib
 sklearn
-gatt
 PyQt5
 requests
-bottle
-requests
-attrdict

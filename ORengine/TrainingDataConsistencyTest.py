@@ -7,7 +7,7 @@ from numpy import loadtxt
 class TestTrainingDataConsistency(unittest.TestCase):
 
     def load_csv(self):
-        dataset = loadtxt('../TrainingDataset/testfile.csv', delimiter=",")
+        dataset = loadtxt('./TrainingDataset/defaultDataset.csv', delimiter=",")
         return dataset
         
     def test_minimum_row_amount_relevance(self):
@@ -29,3 +29,6 @@ class TestTrainingDataConsistency(unittest.TestCase):
                 else:
                     self.assertEqual(len(str(int(data))), 1)
                 i += 1
+
+if __name__ == "__main__":
+    unittest.main()

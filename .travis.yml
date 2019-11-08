@@ -1,8 +1,16 @@
   language: python
+  cache: pip3
   python:
     - "3.6"
-  script:
-    - pip install -r requirement.txt
-    - cd ./DemoAcqui/Tests/
-    - python -m unittest -v TrainingDataConsistencyTest
-    - python -m unittest -v PlotterTest
+
+  jobs:
+    include:
+      - stage: "Test"
+        script:
+          - cd ORengine/
+          - pip3 install -r requirements.txt
+          - python3 -m unittest -v TrainingDataConsistencyTest
+      - stage: "Deploy"
+        if: branch = master
+        script:
+          - echo "Deloy stage"
