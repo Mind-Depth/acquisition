@@ -2,5 +2,6 @@
   python:
     - "3.6"
   script:
+    - cd ORengine
     - pip3 install -r requirement.txt
     - python3 -m unittest -v TrainingDataConsistencyTest
