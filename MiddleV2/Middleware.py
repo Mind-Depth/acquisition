@@ -26,7 +26,12 @@ from Keyboard.KeyboardController import KeyboardController
 from Config import *
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
+from enum import Enum
 import sys
+
+class ClientType(Enum):
+    DEVICE = 0,
+    ORE = 1
 
 class Middleware():
 
@@ -52,6 +57,7 @@ class Middleware():
         self.m_ip = 'localhost'
         #self.m_ip = get_ip()
         self.m_port = MIDDLE_PORT
+        self.m_websock_port = MIDDLE_WEBSOCK_PORT
 
         self.m_ore_ip = ore_ip
         self.m_ore_port = ore_port
@@ -60,8 +66,9 @@ class Middleware():
         self.m_android_port = android_port
         self.m_android_rte = '/android'
 
+        self.m_middleware_http_server = MiddlewareHttpServer(self.m_ip, self.m_port, self.on_biofeedback_packet_received)
         self.m_middleware_http_sender = MiddlewareHttpController(self.m_packets_factory)
-        self.m_websocket_server = MiddlewareWebsocketServer(self.m_ip, self.m_port)
+        self.m_websocket_server = MiddlewareWebsocketServer(self.m_ip, self.m_websock_port)
         self.m_websocket_server.start_server()
         self.m_keyboard_controller = KeyboardController(self.m_keyboard_factory)
         self.m_keyboard_controller.start()
@@ -112,6 +119,13 @@ class Middleware():
                 log(self, 'Android successfuly launched')
         else:
             log(self, 'Unable to start the target')
+
+    ###
+    # Callbacks from MiddlewareHttpServer
+    ###
+
+    def on_biofeedback_packet_received(self, bf, timestamp):
+        log('Biofeedback received with values bpm {} ts {}'.format(bf, timestamp))
 
     ###
     # Callbacks from KeyboardController

@@ -37,6 +37,7 @@ class MiddlewareHttpHandler(BaseHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])
         body = self.rfile.read(content_length)
         try:
-            print(body)
+            packet = json.loads(body)
+            self.server.on_packet_received(packet, self.self.client_address[1])
         except json.decoder.JSONDecodeError:
             print('ERROR: Unable to parse the current Json : ' + str(body))

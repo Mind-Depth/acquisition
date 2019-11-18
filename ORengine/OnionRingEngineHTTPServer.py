@@ -52,14 +52,14 @@ class OnionRingEngineHTTPServer(HTTPServer):
             handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'ORE is ready'))
 
     def on_start_command_received(self, handler, packet):
-        if not self.m_fear_engine.launch():# TODO False
-            handler.send_complete_response(400, PacketFactory.get_program_state_json(True, 'AI already launched'))
+        if not self.m_fear_engine.launch():
+            handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'AI already launched'))
         else:
             handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'Launching Onion Ring Engine AI'))
 
     def on_stop_command_received(self, handler, packet):
-        if not self.m_fear_engine.stop(): # TODO False
-            handler.send_complete_response(400, PacketFactory.get_program_state_json(True, 'AI already stopped'))
+        if not self.m_fear_engine.stop():
+            handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'AI already stopped'))
         else:
             self.stop_websocket_server()
             handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'Stopping Onion Ring Engine AI'))
