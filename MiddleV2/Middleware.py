@@ -43,7 +43,7 @@ class Middleware():
         self.m_ip = 'localhost'
         #self.m_ip = get_ip()
         self.m_port = MIDDLE_PORT
-        self.m_websock_port = MIDDLE_WEBSOCK_PORT
+        self.m_websock_port = ORE_WEBSOCK_PORT
 
         self.m_ore_ip = ore_ip
         self.m_ore_port = ore_port
