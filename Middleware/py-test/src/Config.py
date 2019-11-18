@@ -8,7 +8,7 @@ class Config():
     def __init__(self, **kwargs):
 
         self.m_port = "8080"
-        self.m_socket_port = "6669"
+        self.m_socket_port = "6704"
         self.m_socket_host = "localhost"
         self.m_debug = True
         self.m_android_route = '/biofeedback'
@@ -22,5 +22,5 @@ class Config():
         print('My public IP is : ' + self.m_public_ip)
         print('My local IP is : ' + self.m_local_ip)
 
-        self.m_android_address = 'http://192.168.1.13:8080'
+        self.m_android_address = 'http://100.123.107.174:8080'
         self.m_ai_address = 'http://localhost:4242'

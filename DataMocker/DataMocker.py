@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/usr/bin/env python3
 
 from http.server import HTTPServer
 
@@ -21,14 +21,16 @@ sys.stdout.write = _write
 class OnionRingEngineHTTPSender():
 
     @staticmethod
-    def post_data_to_endpoint(ip, port, rte, data):
-        url = 'http://' + ip + ':' + str(port) + rte
-        json = data
-        try:
-##            requests.post(url = url, json = data, timeout=0.0000000001) 
-            requests.post(url = url, json = data) 
-        except requests.exceptions.ReadTimeout: 
-            pass
+    def post_data_to_endpoint(url, data):
+        session = requests.Session()
+        session.trust_env = False
+        response = session.post(url = url, headers= OnionRingEngineHTTPSender.get_header(), json = data, timeout=2) 
+
+    @staticmethod
+    def get_header():
+        return {
+            'Content-Type':  'application/json'
+        }
 
 class DataMockerHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -53,6 +55,7 @@ class DataMockerHTTPRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(response.getvalue())
 
     def packet_parser(self, packet):
+        print('Packet == {}'.format(packet["message_type"]))
         if packet["message_type"] == MessageType['CONTROL_SESSION']:
             self.on_control_session_packet_received(packet)
         elif packet["message_type"] == MessageType['INIT']:
@@ -93,8 +96,10 @@ class DataMockerHttpServer(HTTPServer):
 
     def on_init_command_received(self, handler, packet):
         if self.m_is_server_init:
-            handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'DataMocker already init'))
+            print('Mocker already init')
+            handler.send_complete_response(200, PacketFactory.get_program_state_json(False, 'DataMocker already init'))
         else:
+            print('Mocker init')
             self.m_is_server_init = True
             self.m_middleware_ip = packet["client_ip"]
             self.m_middleware_port = packet["client_port"]
@@ -102,21 +107,28 @@ class DataMockerHttpServer(HTTPServer):
             handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'DataMocker is ready'))
 
     def on_start_command_received(self, handler, packet):
-        if not self.m_csv_reader.start(): # TODO False
-            handler.send_complete_response(400, PacketFactory.get_program_state_json(True, 'CsvReader already launched'))
+        print("Start handler")
+        if not self.m_csv_reader.start():
+            print('Mocker already started')
+            handler.send_complete_response(200, PacketFactory.get_program_state_json(False, 'CsvReader already launched'))
         else:
+            print('Mocker started')
             handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'Launching DataMocker'))
+            self.m_csv_reader.read_next_point()
 
     def on_stop_command_received(self, handler, packet):
-        if not self.m_csv_reader.stop(): # TODO False
-            handler.send_complete_response(400, PacketFactory.get_program_state_json(True, 'CsvReader already stopped'))
+        if not self.m_csv_reader.stop():
+            print('Mocker already stopped')
+            handler.send_complete_response(200, PacketFactory.get_program_state_json(False, 'CsvReader already stopped'))
         else:
+            print('Mocker stopped')
             handler.send_complete_response(200, PacketFactory.get_program_state_json(True, 'Stopping DataMocker'))
 
     # MARK : CsvReader callbacks
 
     def on_new_entry_received(self, bpm, timestamp):
-        OnionRingEngineHTTPSender.post_data_to_endpoint(self.m_middleware_ip, self.m_middleware_port, self.m_middleware_rte, PacketFactory.get_biofeedback_json(bpm, timestamp))
+        print('Sending bf {} to http://{}:{}{}'.format(bpm, self.m_middleware_ip, self.m_middleware_port, self.m_middleware_rte))
+        OnionRingEngineHTTPSender.post_data_to_endpoint('http://{}:{}{}'.format(self.m_middleware_ip, str(self.m_middleware_port), self.m_middleware_rte), PacketFactory.get_biofeedback_json(bpm, timestamp))
 
     # MARK : BaseHTTPRequestHandler callbacks
 
@@ -126,8 +138,10 @@ class DataMockerHttpServer(HTTPServer):
         elif not self.m_is_server_init:
             handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'DataMocker not ready yet'))
         elif command is MockerCommandType.START:
+            print('START')
             self.on_start_command_received(handler, packet)
         elif command is MockerCommandType.STOP:
+            print('STOP')
             self.on_stop_command_received(handler, packet)
 
 if __name__ == "__main__":

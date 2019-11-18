@@ -58,8 +58,8 @@ public class PcaHttpServerController implements IPcaPacketHandler {
             mServer.sendPendingResponse(200, new JSONObject("{\"message_type\": \"PROGRAM_STATE\", \"status\": true, \"message\": \"Pca successfully init\"}"));
             Log.d(TAG, "Initialization with the following values : "  + mClientIp + ":" + mClientPort + mClientRoute);
         } else {
-            mServer.sendPendingResponse(400, new JSONObject("{\"message_type\": \"PROGRAM_STATE\", \"status\": true, \"message\": \"Pca already init or launched\"}"));
-            Log.e(TAG, "Pca already init or launched");
+            mServer.sendPendingResponse(200, new JSONObject("{\"message_type\": \"PROGRAM_STATE\", \"status\": true, \"message\": \"Pca already init or launched\"}"));
+            Log.d(TAG, "Pca already init or launched");
         }
     }
 
@@ -84,7 +84,7 @@ public class PcaHttpServerController implements IPcaPacketHandler {
         if (mState ==  PcaHttpServerControllerState.STARTED) {
             mSender.sendPacket(packet);
         } else {
-            Log.e(TAG, "Unable to send biofeedback data to client : Server is not started");
+            Log.d(TAG, "Unable to send biofeedback data to client : Server is not started");
         }
     }
 }

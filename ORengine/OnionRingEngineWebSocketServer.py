@@ -20,6 +20,8 @@ class OnionRingEngineWebSocketServer():
 
     def run_serv(self):
         self.m_is_running = True
+        print('IN SOCKET STARTER\n')
+        print('socket args are ip: {}, port {}\n'.format(self.m_ip, self.m_port))
         self.m_socket.bind((self.m_ip, self.m_port))
         while True:
             print('Listen', self.m_ip, self.m_port)
@@ -31,7 +33,7 @@ class OnionRingEngineWebSocketServer():
                     data = self.m_client_socket.recv(1024).decode()
                 except OSError:
                     print('Force closing the connexion with the actual client')
-                if not data:
+                if data is None:
                     print('Client ' + str(address) + ' disconnected')
                     break
             self.m_client_socket.close()

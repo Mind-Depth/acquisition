@@ -17,8 +17,9 @@ class CsvReader():
             print('CsvReader already launched')
             return False
         else:
+            print("Starting CsvReader")
             self.m_is_running = True
-            self.read_next_point()
+            print("CsvReader started")
             return True
 
     def stop(self):
@@ -31,13 +32,14 @@ class CsvReader():
 
     def read_next_point(self):
         if self.m_is_running:
+            print('Reading idx {}'.format(self.m_cur_idx))
             self.m_callback(self.m_file[self.m_cur_idx], int(time.time()))
             if self.m_cur_idx < self.m_file_size - 1:
                 self.m_cur_idx += 1
             else:
                 self.m_cur_idx = 0
-##            threading.Timer(1, self.read_next_point).start()
-            threading.Timer(0.1, self.read_next_point).start()
+            threading.Timer(1, self.read_next_point).start()
+            #threading.Timer(0.1, self.read_next_point).start()
             
 
     def loadCsv(self, filepath):

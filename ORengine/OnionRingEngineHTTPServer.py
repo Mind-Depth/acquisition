@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/usr/bin/env python3
 
 from enum import Enum
 from http.server import HTTPServer
@@ -45,7 +45,7 @@ class OnionRingEngineHTTPServer(HTTPServer):
         if not self.m_is_server_ready:
             handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'ORE not ready yet'))
         elif self.m_is_server_init:
-            handler.send_complete_response(400, PacketFactory.get_program_state_json(False, 'ORE already init'))
+            handler.send_complete_response(200, PacketFactory.get_program_state_json(False, 'ORE already init'))
         else:
             self.m_is_server_init = True
             self.start_websocket_server()
