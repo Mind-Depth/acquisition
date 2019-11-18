@@ -1,6 +1,7 @@
 #!/usr/local/bin/python3
 
 from Server.MiddlewareHandler import MiddlewareHttpHandler
+from Utils.PacketFactory import PacketFactory
 from Utils.PrintUtils import log
 from http.server import HTTPServer
 from socketserver import ThreadingMixIn
@@ -18,11 +19,10 @@ class MiddlewareHttpServer(ThreadingMixIn, HTTPServer):
         self.m_thread = threading.Thread(target = self.run_server)
 
     def run_server(self):
-        log(self, 'Launching HTTP server on {} : {}'.format(self.m_ip, self.m_port))
         self.serve_forever()
 
     def start_server(self):
-        log(self, 'Starting MiddlewareHttpServer')
+        log(self, 'Launching HTTP server on {} : {}'.format(self.m_ip, self.m_port))
         self.m_thread.start()
 
     def stop_server(self):
@@ -33,10 +33,12 @@ class MiddlewareHttpServer(ThreadingMixIn, HTTPServer):
     # Callbacks from MiddlewareHandler
     ###
 
-    def on_packet_received(self, packet, rte):
+    def on_packet_received(self, packet, handler):
         try:
-            log(self, 'Packet {} received from {}'.format(packet['message_type'], rte))
+            log(self, 'Packet {} received from {}'.format(packet['message_type'], handler.client_address))
             if packet['message_type'] ==  "BIOFEEDBACK":
                 self.m_bf_callback(packet['bf'], packet['timestamp'])
+                handler.send_complete_response(200, json.dumps(PacketFactory.get_program_state_packet(True, "BF received")))
         except json.decoder.JSONDecodeError:
             print('ERROR: Unable to parse the current Json : ' + str(packet))
+            handler.send_complete_response(400, json.dumps(PacketFactory.get_program_state_packet(False, "Bad format")))

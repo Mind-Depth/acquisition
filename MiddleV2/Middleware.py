@@ -43,7 +43,9 @@ class Middleware():
             'init_ore': self.init_ore,
             'init_android': self.init_android,
             'start_ore': self.start_ore,
-            'start_android': self.start_android
+            'start_android': self.start_android,
+            'stop_ore': self.stop_ore,
+            'stop_android': self.stop_android
         }
 
         self.m_packets_factory = {
@@ -67,6 +69,7 @@ class Middleware():
         self.m_android_rte = '/android'
 
         self.m_middleware_http_server = MiddlewareHttpServer(self.m_ip, self.m_port, self.on_biofeedback_packet_received)
+        self.m_middleware_http_server.start_server()
         self.m_middleware_http_sender = MiddlewareHttpController(self.m_packets_factory)
         self.m_websocket_server = MiddlewareWebsocketServer(self.m_ip, self.m_websock_port)
         self.m_websocket_server.start_server()
@@ -125,7 +128,8 @@ class Middleware():
     ###
 
     def on_biofeedback_packet_received(self, bf, timestamp):
-        log('Biofeedback received with values bpm {} ts {}'.format(bf, timestamp))
+        log(self, 'Biofeedback received with values bpm {} ts {}'.format(bf, timestamp))
+        self.m_middleware_http_sender.post_data_to_endpoint(PacketFactory.get_biofeedback_packet(bf, timestamp), self.get_ore_endpoint())
 
     ###
     # Callbacks from KeyboardController
@@ -149,6 +153,8 @@ class Middleware():
 
     def stop_session(self):
         log(self, 'Stopping session')
+        self.stop_ore()
+        self.stop_android()
 
     def init_ore(self):
         log(self, 'Init ORE...')
@@ -172,6 +178,13 @@ class Middleware():
         else:
             log(self, 'Error Android not ready')
 
+    def stop_ore(self):
+        log(self, 'Stopping ORE...')
+        self.m_middleware_http_sender.post_data_to_endpoint(PacketFactory.get_control_session_packet(False), self.get_ore_endpoint())
+
+    def stop_android(self):
+        log(self, 'Stopping Android...')
+        self.m_middleware_http_sender.post_data_to_endpoint(PacketFactory.get_control_session_packet(False), self.get_android_endpoint())
 
 if __name__ == "__main__":
     Middleware(ore_ip=ORE_IP, ore_port=ORE_PORT, android_ip=ANDROID_IP, android_port=ANDROID_PORT)

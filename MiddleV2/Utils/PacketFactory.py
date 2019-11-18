@@ -14,6 +14,15 @@ class PacketFactory():
         return program_state_packet
 
     @staticmethod
+    def get_biofeedback_packet(bf, ts):
+        biofeedback_packet = {
+            "message_type": "BIOFEEDBACK",
+            "bf": bf,
+            "timestamp": ts
+        }
+        return biofeedback_packet
+
+    @staticmethod
     def get_control_session_packet(status):
         control_session_packet = {
             "message_type": "CONTROL_SESSION",
