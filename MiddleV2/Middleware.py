@@ -71,8 +71,7 @@ class Middleware():
         self.m_middleware_http_server = MiddlewareHttpServer(self.m_ip, self.m_port, self.on_biofeedback_packet_received)
         self.m_middleware_http_server.start_server()
         self.m_middleware_http_sender = MiddlewareHttpController(self.m_packets_factory)
-        self.m_websocket_server = MiddlewareWebsocketServer(self.m_ip, self.m_websock_port)
-        self.m_websocket_server.start_server()
+        self.m_websocket_server = MiddlewareWebsocketServer(self.m_ip, self.m_websock_port, self.on_fear_event_received)
         self.m_keyboard_controller = KeyboardController(self.m_keyboard_factory)
         self.m_keyboard_controller.start()
         # TODO : Init named pipe controller here
@@ -107,6 +106,8 @@ class Middleware():
             if url == self.get_ore_endpoint() and not self.m_ore_ready:
                 log(self, 'ORE successfuly init')
                 self.m_ore_ready = True
+                self.m_websocket_server.connect_to_ore()
+                self.m_websocket_server.start_mws()
             elif url == self.get_android_endpoint() and not self.m_android_ready:
                 log(self, 'Android successfuly init')
                 self.m_android_ready = True
@@ -130,6 +131,13 @@ class Middleware():
     def on_biofeedback_packet_received(self, bf, timestamp):
         log(self, 'Biofeedback received with values bpm {} ts {}'.format(bf, timestamp))
         self.m_middleware_http_sender.post_data_to_endpoint(PacketFactory.get_biofeedback_packet(bf, timestamp), self.get_ore_endpoint())
+
+    ###
+    # Callbacks from MiddlewareHttpServer
+    ###
+
+    def on_fear_event_received(self, packet):
+        log(self, 'New FearEvent {} received. Transmitting to generation...'.format(packet))
 
     ###
     # Callbacks from KeyboardController

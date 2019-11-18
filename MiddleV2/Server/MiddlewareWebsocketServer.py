@@ -4,34 +4,30 @@ from Utils.PrintUtils import log
 import threading
 import socket
 import json
+import time
 
 class MiddlewareWebsocketServer():
-    def __init__(self, ip, port):
+    def __init__(self, ip, port, fe_callback):
         self.m_ip = ip
         self.m_port = port
-        self.m_client_socket = None
-        self.m_socket = socket.socket()
-        self.m_thread = threading.Thread(target = self.run_serv)
+        self.m_fe_callback = fe_callback
+        self.m_buff_read_size = 1024
+        self.m_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.m_thread = threading.Thread(target = self.read_websocket)
 
-    def run_serv(self):
+    def connect_to_ore(self):
+        log(self, 'Trying to connect ore websocket on {}:{}'.format(str(self.m_ip), self.m_port))
+        self.m_socket.connect((self.m_ip, self.m_port))
+        log(self, 'Successfuly connected to ore websocket {}:{}'.format(str(self.m_ip), self.m_port))
+
+    def read_websocket(self):
         self.m_is_running = True
-        self.m_socket.bind((self.m_ip, self.m_port))
-        while True:
-            self.m_socket.listen()
-            self.m_client_socket, address = self.m_socket.accept()
-            log(self, 'Connection from: {}'.format(str(address)))
-            while True:
-                try:
-                    data = self.m_client_socket.recv(1024).decode()
-                except OSError:
-                    log(self, 'Force closing the connexion with the actual client')
-                if not data:
-                    log(self, 'Client {} disconnected'.format(str(address)))
-                    break
-            self.m_client_socket.close()
+        while self.m_is_running:
+            data = self.m_socket.recv(self.m_buff_read_size)
+            log(self, 'Receiving data from websocket : {}'.format(data))
+            self.m_fe_callback(json.dumps(data.decode('utf-8')))
 
-    def start_server(self):
-        log(self, 'Launching the Middleware Websocket Server on {} : {}'.format(str(self.m_ip), str(self.m_port)))
+    def start_mws(self):
         self.m_thread.start()
         
     def stop_server(self):
