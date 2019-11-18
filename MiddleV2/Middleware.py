@@ -1,21 +1,5 @@
 #!/usr/local/bin/python3
 
-# TODO : LAUNCH SERVER FOR ORE
-# TODO : OPEN NAMED PIPE FOR GEN
-# TODO : NAMED PIPE <- INIT
-# TODO : SEND INIT TO ORE && ACQUI
-# TODO : PROGRAM_STATE TRUE FROM ORE && ACQUI
-# TODO : PROGRAM_STATE TRUE TO GEN VIA NAMED PIPE
-# TODO : NAMED PIPE <- CONTROL_SESSION TRUE
-# TODO : SEND CONTROL_SESSION TRUE TO ORE && ACQUI
-# TODO : PROGRAM_STATE TRUE FROM ORE && ACQUI
-# TODO : WHEN BF FROM ACQUI -> SEND TO ORE
-# TODO : WHEN FEAR_EVENT FROM ORE -> SEND TO GEN VIA NAMED PIPE
-# TODO : NAMED PIPE <- CONTROL_SESSION FALSE
-# TODO : SEND CONTROL_SESSION FALSE TO ORE && ACQUI
-# TODO : PROGRAM_STATE TRUE FROM ORE && ACQUI
-# TODO : EXIT
-
 from Server.MiddlewareHttpController import MiddlewareHttpController
 from Server.MiddlewareHttpServer import MiddlewareHttpServer
 from Server.MiddlewareWebsocketServer import MiddlewareWebsocketServer
@@ -74,7 +58,7 @@ class Middleware():
         self.m_websocket_server = MiddlewareWebsocketServer(self.m_ip, self.m_websock_port, self.on_fear_event_received)
         self.m_keyboard_controller = KeyboardController(self.m_keyboard_factory)
         self.m_keyboard_controller.start()
-        # TODO : Init named pipe controller here
+        # TODO : INIT NAMEDPIPECONTROLLER HERE
 
     def shutdown_middleware(self):
         self.m_websocket_server.stop_server()
@@ -138,6 +122,7 @@ class Middleware():
 
     def on_fear_event_received(self, packet):
         log(self, 'New FearEvent {} received. Transmitting to generation...'.format(packet))
+        #  TODO : TRANSMIT DATA TO GENERATION VIA NAMEDPIPECONTROLLER
 
     ###
     # Callbacks from KeyboardController
