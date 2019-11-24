@@ -12,6 +12,8 @@ class MiddlewareWebsocketServer():
         self.m_port = port
         self.m_fe_callback = fe_callback
         self.m_buff_read_size = 1024
+        self.m_client_socket = None
+        self.m_is_running = False
         self.m_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.m_thread = threading.Thread(target = self.read_websocket)
 
@@ -32,9 +34,10 @@ class MiddlewareWebsocketServer():
         
     def stop_server(self):
         log(self, 'Stopping the Middleware Websocket Server')
-        self.m_is_running = False
         if self.m_client_socket is None:
             log(self, 'Unable to close client connexion : null client socket')
         else:
             self.m_client_socket.close()
-        self.m_thread.join()
+        if self.m_is_running:
+            self.m_is_running = False
+            self.m_thread.join()

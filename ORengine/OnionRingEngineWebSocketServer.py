@@ -17,7 +17,6 @@ class OnionRingEngineWebSocketServer():
         threading.Thread.__init__(self)
         self.m_thread = threading.Thread(target = self.run_serv)
 
-
     def run_serv(self):
         self.m_is_running = True
         print('IN SOCKET STARTER\n')
@@ -30,26 +29,28 @@ class OnionRingEngineWebSocketServer():
             print('Connection from: ' + str(address))
             while True:
                 try:
-                    data = self.m_client_socket.recv(1024).decode()
-                except OSError:
-                    print('Force closing the connexion with the actual client')
-                if data is None:
+                    if self.m_client_socket.recv(1024):
+                        continue
                     print('Client ' + str(address) + ' disconnected')
-                    break
-            self.m_client_socket.close()
+                except OSError as e:
+                    print('Force closing the connexion with the actual client')
+                break
+            self.close_client()
 
+    def close_client(self):
+        if self.m_client_socket is not None:
+            self.m_client_socket.close()
+            self.m_client_socket = None
+     
     def start_server(self):
         print('Launching the OREngine Websocket Server on ' + str(self.m_ip) + ':' + str(self.m_port) + '...')
         self.m_thread.start()
-        
 
-    def  stop_server(self):
-        self.m_is_running = False
-        if self.m_client_socket is None:
-            print('Unable to close client connexion : null client socket')
-        else:
-            self.m_client_socket.close()
-        self.m_thread.join()
+    def stop_server(self):
+        self.close_client()
+        if self.m_is_running:
+            self.m_is_running = False
+            self.m_thread.join()
 
     def send_packet_to_client(self, message):
         if self.m_client_socket is None:

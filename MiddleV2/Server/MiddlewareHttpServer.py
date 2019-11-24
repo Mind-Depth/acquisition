@@ -19,10 +19,16 @@ class MiddlewareHttpServer(ThreadingMixIn, HTTPServer):
         self.m_thread = threading.Thread(target = self.run_server)
 
     def run_server(self):
-        self.serve_forever()
+        try:
+            self.serve_forever()
+        except:
+            pass
+        log(self, 'Aborting')
+        self.abort()
 
-    def start_server(self):
+    def start_server(self, abort):
         log(self, 'Launching HTTP server on {} : {}'.format(self.m_ip, self.m_port))
+        self.abort = abort
         self.m_thread.start()
 
     def stop_server(self):

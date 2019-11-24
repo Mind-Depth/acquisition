@@ -51,16 +51,11 @@ public class PcaHttpServerController implements IPcaPacketHandler {
 
     @Override
     public void onInitPacketReceived(InitPacket packet) throws JSONException {
-        if (mState == PcaHttpServerControllerState.IDLE)  {
-            initClientInfo(packet.client_ip, packet.client_port, packet.client_rte);
-            mSender.initEndpoint(mClientIp, mClientPort, mClientRoute);
-            mState = PcaHttpServerControllerState.INIT;
-            mServer.sendPendingResponse(200, new JSONObject("{\"message_type\": \"PROGRAM_STATE\", \"status\": true, \"message\": \"Pca successfully init\"}"));
-            Log.d(TAG, "Initialization with the following values : "  + mClientIp + ":" + mClientPort + mClientRoute);
-        } else {
-            mServer.sendPendingResponse(200, new JSONObject("{\"message_type\": \"PROGRAM_STATE\", \"status\": true, \"message\": \"Pca already init or launched\"}"));
-            Log.d(TAG, "Pca already init or launched");
-        }
+        initClientInfo(packet.client_ip, packet.client_port, packet.client_rte);
+        mSender.initEndpoint(mClientIp, mClientPort, mClientRoute);
+        mState = PcaHttpServerControllerState.INIT;
+        mServer.sendPendingResponse(200, new JSONObject("{\"message_type\": \"PROGRAM_STATE\", \"status\": true, \"message\": \"Pca successfully init\"}"));
+        Log.d(TAG, "Initialization with the following values : "  + mClientIp + ":" + mClientPort + mClientRoute);
     }
 
     @Override
@@ -70,7 +65,7 @@ public class PcaHttpServerController implements IPcaPacketHandler {
             mServer.sendPendingResponse(200, new JSONObject("{\"message_type\": \"PROGRAM_STATE\", \"status\": true, \"message\": \"Pca successfully started\"}"));
             Log.d(TAG, "Launching Pca broadcasting...");
         } else if (mState == PcaHttpServerControllerState.STARTED && !packet.status) {
-            mState = PcaHttpServerControllerState.IDLE;
+            mState = PcaHttpServerControllerState.INIT;
             mServer.sendPendingResponse(200, new JSONObject("{\"message_type\": \"PROGRAM_STATE\", \"status\": true, \"message\": \"Pca successfully stopped\"}"));
             Log.d(TAG, "Stopping Pca broadcasting...");
         } else {

@@ -36,7 +36,7 @@ class MiddlewareHttpController():
 
             log(self, 'Response {} received from {}'.format(json_resp, resp_url))
             self.compute_response(data, json_resp, resp_url)
-        except requests.exceptions.ReadTimeout:
-            log(self, 'Timed out')
-        except requests.exceptions.ConnectionError:
-            log(self, 'Connection refused')
+        except Exception as e:
+            log(self, '{} {} {}'.format(url, data, e))
+            self.compute_response(data, dict(status=False), url)
+            raise

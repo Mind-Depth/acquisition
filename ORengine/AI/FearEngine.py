@@ -1,5 +1,6 @@
 #!/usr/local/bin/python3
 
+import os
 import abc
 
 from enum import Enum
@@ -11,13 +12,13 @@ from sklearn.metrics import accuracy_score
 from Utils.OreEnum import FearEngineState
 
 class FearEngine():
-    def __init__(self, dataset_path='./TrainingDataset/defaultDataset.csv'):
+    DEFAULT_DATASET = os.path.join(os.path.dirname(__file__), '..', 'TrainingDataset', 'defaultDataset.csv')
+
+    def __init__(self, dataset_path=DEFAULT_DATASET):
          self.m_model = XGBClassifier()
          self.m_dataset_path = dataset_path
-         self.m_curr_buff = []
          self.m_chunck_size = 10
-         self.m_is_running = False
-         self.m_state = FearEngineState.IDLE
+         self.reset()
          
     def train_ia(self):
         print('...Training AI...')
@@ -35,25 +36,6 @@ class FearEngine():
         self.m_model.fit(X_train, Y_train)
         
         print('...Training completed...')
-
-    def launch(self):
-        if not self.m_is_running:
-            print('Launching FearEngine...')
-            self.m_is_running = True
-            return True
-        else:
-            print('FearEngine already running')
-            return False
-
-    def stop(self):
-        if self.m_is_running:
-            print('Stopping FearEngine...')
-            self.flush_current_data()
-            self.m_is_running = False
-            return True
-        else:
-            print('FearEngine already stopped')
-            return False
 
     def predict_buff(self, buff):
         analysed_buff = []
@@ -98,5 +80,6 @@ class FearEngine():
             print('Launching buff analysis...')
             self.analyse_ai_result(self.m_curr_buff, callback)
             
-    def flush_current_data(self):
-        self.m_curr_buff.clear()
+    def reset(self):
+        self.m_curr_buff = []
+        self.m_state = FearEngineState.IDLE
