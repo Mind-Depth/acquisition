@@ -57,8 +57,8 @@ class Middleware():
         self.m_middleware_http_server.start_server(self.need_abort.set)
         self.m_middleware_http_sender = MiddlewareHttpController(self.m_packets_factory)
         self.m_websocket_server = MiddlewareWebsocketServer('localhost', self.m_websock_port, self.on_fear_event_received)
-        self.m_keyboard_controller = KeyboardController(self.m_keyboard_factory)
-        self.m_keyboard_controller.start(self.need_abort.set)
+        #self.m_keyboard_controller = KeyboardController(self.m_keyboard_factory)
+        #self.m_keyboard_controller.start(self.need_abort.set)
 
         self.m_named_pipe_controller = NamedPipeController(self.need_abort.set, 'MDAcquisition', 'client_in', 'client_out', 64*1024)
         self.m_named_pipe_controller.start(self.on_named_pipe_packet_received)
@@ -70,7 +70,7 @@ class Middleware():
 
     def shutdown_middleware(self):
         self.m_websocket_server.stop_server()
-        self.m_keyboard_controller.stop()
+        #self.m_keyboard_controller.stop()
 
     def get_ore_endpoint(self):
         return 'http://{}:{}/'.format(self.m_ore_ip, self.m_ore_port)

@@ -46,5 +46,5 @@ class MiddlewareHttpServer(ThreadingMixIn, HTTPServer):
                 self.m_bf_callback(packet['bf'], packet['timestamp'])
                 handler.send_complete_response(200, json.dumps(PacketFactory.get_program_state_packet(True, "BF received")))
         except json.decoder.JSONDecodeError:
-            print('ERROR: Unable to parse the current Json : ' + str(packet))
+            log(self, 'ERROR: Unable to parse the current Json : ' + str(packet))
             handler.send_complete_response(400, json.dumps(PacketFactory.get_program_state_packet(False, "Bad format")))

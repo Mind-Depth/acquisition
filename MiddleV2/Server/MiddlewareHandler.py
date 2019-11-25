@@ -1,5 +1,6 @@
 #!/usr/local/bin/python3
 
+from Utils.PrintUtils import log
 from http.server import BaseHTTPRequestHandler
 from io import BytesIO
 import json
@@ -15,7 +16,7 @@ class MiddlewareHttpHandler(BaseHTTPRequestHandler):
         self.send_cors_header()
         self.end_headers()
 
-    def do_OPTIONS(self):           
+    def do_OPTIONS(self):
         self.send_response(200)
         self.send_cors_header()
         self.end_headers()
@@ -40,4 +41,4 @@ class MiddlewareHttpHandler(BaseHTTPRequestHandler):
             packet = json.loads(body)
             self.server.on_packet_received(packet, self)
         except json.decoder.JSONDecodeError:
-            print('ERROR: Unable to parse the current Json : ' + str(body))
+            log(self, 'ERROR: Unable to parse the current Json : ' + str(body))

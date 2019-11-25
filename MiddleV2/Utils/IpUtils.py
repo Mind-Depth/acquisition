@@ -2,6 +2,7 @@
 
 import socket
 import ipaddress
+from Utils.PrintUtils import log
 from subprocess import check_output
 from xml.etree.ElementTree import fromstring
 
@@ -66,5 +67,10 @@ class HostedNetworks:
 
 	@classmethod
 	def find_unique_connection(cls):
-		(interface, (ip,)), = cls.iter_connections()
+		conns = list(cls.iter_connections())
+		try:
+			(interface, (ip,)), = conns
+		except:
+			log(cls, f'Invalid amount of connected devices ({len(conns)}): {conns}')
+			raise
 		return ip
