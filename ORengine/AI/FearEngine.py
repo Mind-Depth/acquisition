@@ -6,8 +6,7 @@ import abc
 from enum import Enum
 from numpy import loadtxt
 from xgboost import XGBClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+import sklearn
 
 from Utils.OreEnum import FearEngineState
 
@@ -28,10 +27,11 @@ class FearEngine():
         X = training_dataset[:,0:10]
         Y = training_dataset[:,10]
 
-        seed = 7
-        test_size = 0.33
-        X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=test_size, random_state=seed)
-    
+        #seed = 7
+        #test_size = 0.33
+        #X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=test_size, random_state=seed)
+        X_train, Y_train = X, Y
+
         # fit m_model no training data
         self.m_model.fit(X_train, Y_train)
         
@@ -43,8 +43,10 @@ class FearEngine():
             analysed_buff.append(bf[0])
         y_pred = self.m_model.predict(analysed_buff)
         predictions = [round(value) for value in y_pred]
-        accuracy = accuracy_score(y_pred, predictions)
-        
+        ##https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html
+        #accuracy = accuracy_score(y_pred, predictions) # Doing a stric comparison on a rounded binary output ==> return 1.0
+        accuracy = 1.0
+
         if (predictions[0] == 0):
             return False, accuracy
         else:
