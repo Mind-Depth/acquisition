@@ -1,0 +1,4 @@
+attrdict
+pypiwin32
+pywin32
+requests
