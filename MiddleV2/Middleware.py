@@ -7,7 +7,6 @@ from Utils.NamedPipeController import NamedPipeController
 from Utils.PrintUtils import log
 from Utils.PacketFactory import PacketFactory
 from Keyboard.KeyboardController import KeyboardController
-from Utils.IpUtils import get_ip
 from enum import Enum
 from Config import *
 import threading
@@ -40,7 +39,7 @@ class Middleware():
         self.m_ore_ready = False
         self.m_android_ready = False
 
-        self.m_ip = get_ip()
+        self.m_ip = SELF_IP
         self.m_port = MIDDLE_PORT
         self.m_websock_port = ORE_WEBSOCK_PORT
 

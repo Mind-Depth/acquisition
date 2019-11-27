@@ -1,5 +1,6 @@
 #!/usr/local/bin/python3
 
+import socket
 from Utils.IpUtils import HostedNetworks
 
 debug = False
@@ -16,6 +17,7 @@ ORE_PORT = 8080
 if debug:
 	ANDROID_IP = 'localhost'
 	ANDROID_PORT = 8282
+	SELF_IP = socket.gethostbyname(socket.gethostname())
 else:
-	ANDROID_IP = HostedNetworks.find_unique_connection()
+	SELF_IP, ANDROID_IP = HostedNetworks.find_unique_connection()
 	ANDROID_PORT = 8080

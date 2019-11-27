@@ -1,13 +1,9 @@
 #!/usr/local/bin/python3
 
-import socket
 import ipaddress
-from Utils.PrintUtils import log
+from .PrintUtils import log
 from subprocess import check_output
 from xml.etree.ElementTree import fromstring
-
-def get_ip():
-    return socket.gethostbyname(socket.gethostname()) 
 
 class HostedNetworks:
 
@@ -57,20 +53,22 @@ class HostedNetworks:
 		for ip in nics.keys() & arps.keys():
 			properties = nics[ip]
 			network = properties['network']
+			desc = properties['desc']
 			blacklist = [network.network_address, network.broadcast_address]
 			connections = []
 			for addr in arps[ip]:
+				log(cls, f'Local IP {ip} ({desc}) is connected to {addr}')
 				if addr in network and not addr in blacklist:
 					connections.append(str(addr))
 			if connections:
-				yield properties['desc'], connections
+				yield desc, ip, connections
 
 	@classmethod
 	def find_unique_connection(cls):
 		conns = list(cls.iter_connections())
 		try:
-			(interface, (ip,)), = conns
+			(interface, local, (remote,)), = conns
 		except:
 			log(cls, f'Invalid amount of connected devices ({len(conns)}): {conns}')
 			raise
-		return ip
+		return local, remote
