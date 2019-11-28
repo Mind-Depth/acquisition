@@ -50,9 +50,9 @@ class OnionRingEngineHTTPServer(HTTPServer):
 
     ### MARK : FearEngine callbacks
 
-    def on_ia_has_predicted(self, status, accuracy, timestamp):
-        print('on_ia_has_predicted', status, accuracy, timestamp)
-        self.m_socket_server.send_packet_to_client(PacketFactory.get_fear_event_json(status, accuracy, timestamp))
+    def on_ia_has_predicted(self, fear, timestamp):
+        print('on_ia_has_predicted', fear, timestamp)
+        self.m_socket_server.send_packet_to_client(PacketFactory.get_fear_event_json(fear, timestamp))
 
     ### MARK : OreHTTPRequestHandler callbacks
 

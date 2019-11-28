@@ -13,11 +13,10 @@ class PacketFactory():
         return json.dumps(program_state_packet)
 
     @staticmethod
-    def get_fear_event_json(status, fear_accuracy, timestamp):
+    def get_fear_event_json(fear, timestamp):
         fear_event_packet = {
             "message_type": MessageType["FEAR_EVENT"],
-            "status_fear": status,
-            "fear_accuracy": fear_accuracy,
+            "fear_level": fear,
             "timestamp": timestamp
         }
         return json.dumps(fear_event_packet)

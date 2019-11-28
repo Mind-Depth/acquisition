@@ -6,7 +6,6 @@ from Server.MiddlewareWebsocketServer import MiddlewareWebsocketServer
 from Utils.NamedPipeController import NamedPipeController
 from Utils.PrintUtils import log
 from Utils.PacketFactory import PacketFactory
-from Keyboard.KeyboardController import KeyboardController
 from enum import Enum
 from Config import *
 import threading
@@ -56,8 +55,6 @@ class Middleware():
         self.m_middleware_http_server.start_server(self.need_abort.set)
         self.m_middleware_http_sender = MiddlewareHttpController(self.m_packets_factory)
         self.m_websocket_server = MiddlewareWebsocketServer('localhost', self.m_websock_port, self.on_fear_event_received)
-        #self.m_keyboard_controller = KeyboardController(self.m_keyboard_factory)
-        #self.m_keyboard_controller.start(self.need_abort.set)
 
         self.m_named_pipe_controller = NamedPipeController(self.need_abort.set, 'MDAcquisition', 'client_in', 'client_out', 64*1024)
         self.m_named_pipe_controller.start(self.on_named_pipe_packet_received)
@@ -147,7 +144,7 @@ class Middleware():
 
     def on_fear_event_received(self, packet):
         log(self, 'New FearEvent {} received. Transmitting to generation...'.format(packet))
-        #  TODO : TRANSMIT DATA TO GENERATION VIA NAMEDPIPECONTROLLER
+        self.m_named_pipe_controller.write(packet)
 
     ###
     # Callbacks from KeyboardController

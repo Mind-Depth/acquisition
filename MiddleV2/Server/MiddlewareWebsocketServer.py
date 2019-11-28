@@ -27,7 +27,7 @@ class MiddlewareWebsocketServer():
         while self.m_is_running:
             data = self.m_socket.recv(self.m_buff_read_size)
             log(self, 'Receiving data from websocket : {}'.format(data))
-            self.m_fe_callback(json.dumps(data.decode('utf-8')))
+            self.m_fe_callback(json.loads(data.decode('utf-8')))
 
     def start_mws(self):
         self.m_thread.start()

@@ -1,17 +1,12 @@
 #!/usr/local/bin/python3
 
 import os
-import abc
-
-from enum import Enum
+import numpy
 from numpy import loadtxt
 from xgboost import XGBClassifier
-import sklearn
-
-from Utils.OreEnum import FearEngineState
 
 class FearEngine():
-    DEFAULT_DATASET = os.path.join(os.path.dirname(__file__), '..', 'TrainingDataset', 'defaultDataset.csv')
+    DEFAULT_DATASET = os.path.join(os.path.dirname(__file__), '..', 'TrainingDataset', 'ChichNRob.csv')
 
     def __init__(self, dataset_path=DEFAULT_DATASET):
          self.m_model = XGBClassifier()
@@ -22,49 +17,20 @@ class FearEngine():
     def train_ia(self):
         print('...Training AI...')
         training_dataset = loadtxt(self.m_dataset_path, delimiter=",")
-
-        # split data into X and y
-        X = training_dataset[:,0:10]
+        X = training_dataset[:,:10]
         Y = training_dataset[:,10]
-
-        #seed = 7
-        #test_size = 0.33
-        #X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=test_size, random_state=seed)
-        X_train, Y_train = X, Y
-
-        # fit m_model no training data
-        self.m_model.fit(X_train, Y_train)
-        
+        self.m_model.fit(X, Y)
         print('...Training completed...')
 
     def predict_buff(self, buff):
-        analysed_buff = []
-        for bf in buff:
-            analysed_buff.append(bf[0])
-        y_pred = self.m_model.predict(analysed_buff)
-        predictions = [round(value) for value in y_pred]
-        ##https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html
-        #accuracy = accuracy_score(y_pred, predictions) # Doing a stric comparison on a rounded binary output ==> return 1.0
-        accuracy = 1.0
-
-        if (predictions[0] == 0):
-            return False, accuracy
-        else:
-            return True, accuracy
+        bpms, timestamps = zip(*buff)
+        (_, fear), = self.m_model.predict_proba(numpy.array([bpms]))
+        return float(fear)
 
     def analyse_ai_result(self, buff, callback):
-        result, accuracy = self.predict_buff(self.m_curr_buff)
-        print('AI result : ' + str(result))
-        if result:
-            if self.m_state is FearEngineState.IDLE:
-                print('Start of a new fear segment')
-                self.m_state = FearEngineState.AFRAID
-                callback(result, accuracy, buff[0][1])
-        else:
-            if self.m_state is FearEngineState.AFRAID:
-                print('End of the current fear segment')
-                self.m_state = FearEngineState.IDLE
-                callback(result, accuracy, buff[self.m_chunck_size - 1][1])
+        fear = self.predict_buff(self.m_curr_buff)
+        print('AI result : ' + str(fear))
+        callback(fear, buff[-1][1])
 
     def add_bf(self, bf, time, callback):
         if len(self.m_curr_buff) < self.m_chunck_size:
@@ -84,4 +50,3 @@ class FearEngine():
             
     def reset(self):
         self.m_curr_buff = []
-        self.m_state = FearEngineState.IDLE

@@ -1,6 +1,6 @@
-numpy
-xgboost
 datetime
-sklearn
+numpy
 PyQt5
 requests
+sklearn
+xgboost
