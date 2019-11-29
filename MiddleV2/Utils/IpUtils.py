@@ -36,7 +36,7 @@ class HostedNetworks:
 	@staticmethod
 	def fetch_arp_interfaces():
 		interfaces = {}
-		for entry in check_output('arp -a').decode().split('\r\n\r\n'):
+		for entry in check_output('arp -a').decode('utf-8', 'ignore').split('\r\n\r\n'):
 			header, table, *addresses = entry.strip().split('\r\n')
 			prompt, ip, *meta = header.split()
 			iaddrs = []
